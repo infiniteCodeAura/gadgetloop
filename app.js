@@ -1,15 +1,16 @@
 import express from "express";
-import cors from "cors"
 
 const app = express()
 
 app.use(express.json());
 
-app.use(cors())
 
 app.use((err,req,res,next)=>{
-    console.log(err);
+    err = err? err.toString():"Something went wrong."
+    return res.status(400).json({message: err})
 })
+
+
 
 
 const port = process.env.port || 8888;
