@@ -1,10 +1,13 @@
-import jwt from "jsonwebtoken";
-import { ip, ipv6 } from "address";
-import { yupSignupValidation } from "./user.validation.js";
+import { ip } from "address";
 import bcrypt from "bcrypt";
-import User from "./user.model.js";
+import dayjs from "dayjs";
+import jwt from "jsonwebtoken";
 import yup from "yup";
-import { mail } from "../authMailer/login.validation.mail.js";
+import { loginIp } from "../device/device.data.js";
+import Ip from "../device/device.model.js";
+
+import User from "./user.model.js";
+import { yupSignupValidation } from "./user.validation.js";
 export const signupUserValidation = async (req, res, next) => {
   try {
     const userSignupData = req.body;
@@ -21,6 +24,10 @@ export const signupUser = async (req, res) => {
 
   // console.log(userData);
 
+
+
+
+
   //check user existance
 
   const user = await User.findOne({ email: userData.email });
@@ -33,7 +40,7 @@ export const signupUser = async (req, res) => {
 
   //get ip address from user
   const ip4 = ip();
-  // const ip4 = "103.225.244.49"
+  // const ip4 = "100.42.20.0"
 
   let device;
 
@@ -104,27 +111,40 @@ export const loginUser = async (req, res) => {
   }
   //if password is true then generate login token for access
 
-//check if different device 
+  //check if different device
+// const ipv4 = ip();
+const ipv4 = "103.225.244.29"
 
-const ip4 =  ip();
 
-// console.log(user.device.query);
+// console.log(await loginIp(ipv4));
 
-if(ip4 !== user.device.query)
-{
-  let message = "Unknown login from : "
- 
-  return  mail()
+//check signup user and login user ip 
 
-  
+const signupUserIp = await User.findOne({email: userData.email})
 
+// console.log(signupUserIp.device.query);
+let message = "We noticed a login attempt to your account from a new device or location: "
+
+//is new ip detected then store it 
+const date = dayjs()
+
+
+
+
+if(signupUserIp.device.query !== ipv4){
+//if new ip then store it 
+//with device details and user id 
+const device = await loginIp(ipv4)
+
+const data = {userId: user._id,device,date: date}
+data.device.status = undefined
+// console.log(await data);
+//store it 
+await Ip.create(data)
+  // mail(signupUserIp.device.country,signupUserIp.device.city,signupUserIp.device.query,message, )
 }
 
-
-
-
-
-
+console.log("object");
   const payload = await jwt.sign(
     {
       email: user.email,
@@ -160,16 +180,20 @@ export const yupNameValidation = async (req, res, next) => {
 
 //first name edit function
 
-export const updateName = async(req, res) => {
+export const updateName = async (req, res) => {
   const name = req.body;
 
-//update name  
+  //update name
 
-const update = await User.updateMany({email: req.userData.email},{$set:{
-    firstName:name.firstName,lastName: name.lastName
-}})
+  const update = await User.updateMany(
+    { email: req.userData.email },
+    {
+      $set: {
+        firstName: name.firstName,
+        lastName: name.lastName,
+      },
+    }
+  );
 
-console.log("object");
-
+  console.log("object");
 };
-

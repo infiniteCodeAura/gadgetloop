@@ -5,10 +5,16 @@ const deviceSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  data: {
-    type:Object,
-    required:false
-  }
+  
+  device:{
+    type: Object,
+
+  },
+  date: {
+    type: String,
+
+  },
+
 });
 
 const Ip = mongoose.model("ip",deviceSchema);

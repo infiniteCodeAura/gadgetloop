@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
     type: Object,
     required: false,
   },
-});
+},{timestamps:true});
 
 const User = mongoose.model("user", userSchema);
 export default User;
