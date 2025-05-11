@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
-import { ip } from "address";
+import { ip, ipv6 } from "address";
 import { yupSignupValidation } from "./user.validation.js";
 import bcrypt from "bcrypt";
 import User from "./user.model.js";
 import yup from "yup";
+import { mail } from "../authMailer/login.validation.mail.js";
 export const signupUserValidation = async (req, res, next) => {
   try {
     const userSignupData = req.body;
@@ -103,6 +104,27 @@ export const loginUser = async (req, res) => {
   }
   //if password is true then generate login token for access
 
+//check if different device 
+
+const ip4 =  ip();
+
+// console.log(user.device.query);
+
+if(ip4 !== user.device.query)
+{
+  let message = "Unknown login from : "
+ 
+  return  mail()
+
+  
+
+}
+
+
+
+
+
+
   const payload = await jwt.sign(
     {
       email: user.email,
@@ -150,3 +172,4 @@ const update = await User.updateMany({email: req.userData.email},{$set:{
 console.log("object");
 
 };
+
