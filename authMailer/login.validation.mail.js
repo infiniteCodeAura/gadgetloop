@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-export const mail = async (country, city, ip, message, email,  date) => {
+export const mail = async (name,country, city, ip, message, email,  date) => {
   // Configure transporter
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -13,16 +13,15 @@ export const mail = async (country, city, ip, message, email,  date) => {
   // Mail options
   const mailOptions = {
     from: "wwwghimiresagar88@gmail.com",
-    to: "s.g.devil.88@gmail.com",
-    subject: `${sub}`,
-    text: `${message} \n 
-            Country:        ${country} \n
+    to: `${email}`,
+    subject: `HELLO ${name.toUpperCase()}`,
+    text: ` 
+    ${message} 
+            Country:        ${country}
+            city :          ${city}
             Ip Address :    ${ip}
             loggedIn Date : ${date}
-
-\n
 If this was you, no action is needed.
-
 If you didn’t try to log in, please secure your account immediately by changing your password
     
     `,

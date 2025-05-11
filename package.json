@@ -30,6 +30,7 @@
     "mongodb": "^6.16.0",
     "mongoose": "^8.14.2",
     "nodemailer": "^7.0.3",
+    "public-ip": "^7.0.1",
     "yup": "^1.6.1"
   },
   "devDependencies": {

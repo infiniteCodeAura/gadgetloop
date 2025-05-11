@@ -1,18 +1,19 @@
-import { ip } from "address";
 import bcrypt from "bcrypt";
 import dayjs from "dayjs";
 import jwt from "jsonwebtoken";
 import yup from "yup";
+import { publicIpv4 } from "public-ip";
 import { loginIp } from "../device/device.data.js";
 import Ip from "../device/device.model.js";
 
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
+import { mail } from "../authMailer/login.validation.mail.js";
+
 export const signupUserValidation = async (req, res, next) => {
   try {
     const userSignupData = req.body;
-
-    await yupSignupValidation.validate(userSignupData);
+    await yupSignupValidation.validate(userSignupData, { abortEarly: false });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -22,58 +23,41 @@ export const signupUserValidation = async (req, res, next) => {
 export const signupUser = async (req, res) => {
   const userData = req.body;
 
-  // console.log(userData);
-
-
-
-
-
-  //check user existance
-
-  const user = await User.findOne({ email: userData.email });
-
-  if (user) {
-    return res
-      .status(400)
-      .json({ message: "User already exist with this email. " });
-  }
-
-  //get ip address from user
-  const ip4 = ip();
-  // const ip4 = "100.42.20.0"
-
-  let device;
-
   try {
-    const url = `http://ip-api.com/json/${ip4}`;
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      return res.status(400).json({ message: "Something went wrong." });
+    const existingUser = await User.findOne({ email: userData.email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exist with this email." });
     }
-    // console.log("object");
-    const jsonData = await response.json();
 
-    device = jsonData;
-  } catch (error) {
-    console.log(error);
+    // Get public IP address
+    const ip4 = await publicIpv4();
+    let device;
+
+    try {
+      const url = `http://ip-api.com/json/${ip4}`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        return res.status(400).json({ message: "Something went wrong while fetching device info." });
+      }
+
+      const jsonData = await response.json();
+      device = jsonData.status === "fail" ? {} : jsonData;
+      delete device.status;
+    } catch (err) {
+      console.error("IP API error:", err);
+      device = {};
+    }
+
+    const hashPassword = await bcrypt.hash(userData.password, 10);
+    userData.password = hashPassword;
+
+    await User.create({ ...userData, device });
+    return res.status(200).json({ message: "Account created." });
+  } catch (err) {
+    console.error("Signup error:", err);
+    return res.status(500).json({ message: "Internal server error." });
   }
-
-  if (device.status === "fail") {
-    device = {};
-  }
-
-  //enctypt password
-
-  const hashPassword = await bcrypt.hash(userData.password, 10);
-
-  userData.password = hashPassword;
-  device.status = undefined;
-
-  await User.create({ ...userData, device });
-
-  return res.status(200).json({ message: "Account created." });
 };
 
 export const loginUserValidation = async (req, res, next) => {
@@ -82,9 +66,9 @@ export const loginUserValidation = async (req, res, next) => {
   try {
     await yup
       .object({
-        email: yup.string().email("Please enter valid email. "),
+        email: yup.string().email("Please enter valid email."),
       })
-      .validate({ email: loginUserData.email });
+      .validate({ email: loginUserData.email }, { abortEarly: false });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -94,106 +78,90 @@ export const loginUserValidation = async (req, res, next) => {
 export const loginUser = async (req, res) => {
   const userData = req.body;
 
-  //check user existance
+  try {
+    const user = await User.findOne({ email: userData.email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials." });
+    }
 
-  const user = await User.findOne({ email: userData.email });
+    const passwordMatch = await bcrypt.compare(userData.password, user.password);
+    if (!passwordMatch) {
+      return res.status(400).json({ message: "Invalid credentials." });
+    }
 
-  if (!user) {
-    return res.status(400).json({ message: "Invalid credentials." });
+    const ipv4 = await publicIpv4();
+    const signupUserIp = await User.findOne({ email: userData.email });
+
+    let message = "We noticed a login attempt to your account from a new device or location: ";
+    const date = dayjs().format("MMMM D, YYYY, h:mm A");
+
+    if (signupUserIp.device?.query !== ipv4) {
+      const device = await loginIp(ipv4);
+      delete device.status;
+
+      const data = {
+        userId: user._id,
+        device,
+        date,
+      };
+
+      await Ip.create(data);
+
+      //mail it 
+
+      mail(user.firstName,device.country, device.city, device.query, message,user.email, date)
+    }
+
+    const token = jwt.sign(
+      { email: user.email },
+      process.env.key,
+      { expiresIn: "24h" }
+    );
+
+    const sanitizedUser = user.toObject();
+    delete sanitizedUser.password;
+    delete sanitizedUser.device;
+
+    return res.status(200).json({ data: sanitizedUser, token });
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ message: "Internal server error." });
   }
-
-  //if email is valid then check password match
-
-  const password = await bcrypt.compare(userData.password, user.password);
-
-  if (!password) {
-    return res.status(400).json({ message: "Invalid credentials. " });
-  }
-  //if password is true then generate login token for access
-
-  //check if different device
-// const ipv4 = ip();
-const ipv4 = "103.225.244.29"
-
-
-// console.log(await loginIp(ipv4));
-
-//check signup user and login user ip 
-
-const signupUserIp = await User.findOne({email: userData.email})
-
-// console.log(signupUserIp.device.query);
-let message = "We noticed a login attempt to your account from a new device or location: "
-
-//is new ip detected then store it 
-const date = dayjs()
-
-
-
-
-if(signupUserIp.device.query !== ipv4){
-//if new ip then store it 
-//with device details and user id 
-const device = await loginIp(ipv4)
-
-const data = {userId: user._id,device,date: date}
-data.device.status = undefined
-// console.log(await data);
-//store it 
-await Ip.create(data)
-  // mail(signupUserIp.device.country,signupUserIp.device.city,signupUserIp.device.query,message, )
-}
-
-console.log("object");
-  const payload = await jwt.sign(
-    {
-      email: user.email,
-    },
-    process.env.key,
-    { expiresIn: "24h" }
-  );
-
-  //hide specific data from user
-  user.device = undefined;
-  user.password = undefined;
-  return res.status(200).json({ data: user, token: payload });
 };
-
-//user update profile apis
-
-//name validation function
 
 export const yupNameValidation = async (req, res, next) => {
   const { firstName, lastName } = req.body;
+
   try {
     await yup
       .object({
         firstName: yup.string().required("First name is required").trim(),
         lastName: yup.string().required("Last name is required").trim(),
       })
-      .validate({ firstName, lastName });
+      .validate({ firstName, lastName }, { abortEarly: false });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
   next();
 };
 
-//first name edit function
-
 export const updateName = async (req, res) => {
   const name = req.body;
 
-  //update name
+  try {
+    await User.updateMany(
+      { email: req.userData.email },
+      {
+        $set: {
+          firstName: name.firstName,
+          lastName: name.lastName,
+        },
+      }
+    );
 
-  const update = await User.updateMany(
-    { email: req.userData.email },
-    {
-      $set: {
-        firstName: name.firstName,
-        lastName: name.lastName,
-      },
-    }
-  );
-
-  console.log("object");
+    return res.status(200).json({ message: "Name updated successfully." });
+  } catch (err) {
+    console.error("Update name error:", err);
+    return res.status(500).json({ message: "Internal server error." });
+  }
 };
