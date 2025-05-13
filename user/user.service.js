@@ -10,6 +10,8 @@ import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
 import { mail } from "../authMailer/login.validation.mail.js";
 import moment from "moment";
+import path from "path";
+import multer from "multer";
 
 export const signupUserValidation = async (req, res, next) => {
   try {
@@ -196,3 +198,50 @@ export const updateName = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
+
+
+export const uploadProfile = async (req, res) => {
+  const file = req.file;
+
+
+ 
+try {
+    // Define storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "./upload/profiles"),
+  filename: (req, file, cb) => {
+    const ext = file.mimetype.split("/")[1];
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${ext}`;
+    cb(null, uniqueName);
+  },
+});
+
+// Allow only jpg, jpeg, png
+const fileFilter = (req, file, cb) => {
+  const allowed = ["image/jpeg", "image/jpg", "image/png"];
+  if (allowed.includes(file.mimetype)) cb(null, true);
+  else cb(new Error("Only jpg, jpeg, png allowed"), false);
+};
+
+
+
+console.log(file);
+
+const upload = multer({storage})
+
+if(!upload){
+  return res.status(400).json({ message: "File not uploaded." });
+}
+return res.status(200).json({ message: "profile uploaded successfully." });
+
+  
+
+} catch (error) {
+  return res.status(400).json({message: error.message});
+}
+
+
+}
+
+
