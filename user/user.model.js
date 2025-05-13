@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+profile: {
+  type: String,
+},
+
   role: {
     type: String,
     trim: true,
@@ -33,7 +37,10 @@ const userSchema = new mongoose.Schema({
     type: Object,
     required: false,
   },
-},{timestamps:true});
+},{
+  timestamps:true
+
+});
 
 const User = mongoose.model("user", userSchema);
 export default User;

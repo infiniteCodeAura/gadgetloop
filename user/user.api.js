@@ -16,6 +16,14 @@ router.post("/user/login",loginUserValidation,loginUser)
 //first name update api
 router.put("/user/profile/name",isUser,yupNameValidation,updateName)
 
+//profile picture upload api 
+
+router.post("/user/profile/profile",(req,res)=>{
+    console.log(req.file);
+    res.status(200).json({message:"file uploaded"})
+}
+)
+
 
 export default router;
 

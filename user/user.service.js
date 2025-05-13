@@ -9,6 +9,7 @@ import Ip from "../device/device.model.js";
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
 import { mail } from "../authMailer/login.validation.mail.js";
+import moment from "moment";
 
 export const signupUserValidation = async (req, res, next) => {
   try {
@@ -26,7 +27,9 @@ export const signupUser = async (req, res) => {
   try {
     const existingUser = await User.findOne({ email: userData.email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exist with this email." });
+      return res
+        .status(400)
+        .json({ message: "User already exist with this email." });
     }
 
     // Get public IP address
@@ -38,7 +41,11 @@ export const signupUser = async (req, res) => {
       const response = await fetch(url);
 
       if (!response.ok) {
-        return res.status(400).json({ message: "Something went wrong while fetching device info." });
+        return res
+          .status(400)
+          .json({
+            message: "Something went wrong while fetching device info.",
+          });
       }
 
       const jsonData = await response.json();
@@ -84,7 +91,10 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 
-    const passwordMatch = await bcrypt.compare(userData.password, user.password);
+    const passwordMatch = await bcrypt.compare(
+      userData.password,
+      user.password
+    );
     if (!passwordMatch) {
       return res.status(400).json({ message: "Invalid credentials." });
     }
@@ -92,7 +102,8 @@ export const loginUser = async (req, res) => {
     const ipv4 = await publicIpv4();
     const signupUserIp = await User.findOne({ email: userData.email });
 
-    let message = "We noticed a login attempt to your account from a new device or location: ";
+    let message =
+      "We noticed a login attempt to your account from a new device or location: ";
     const date = dayjs().format("MMMM D, YYYY, h:mm A");
 
     if (signupUserIp.device?.query !== ipv4) {
@@ -107,16 +118,22 @@ export const loginUser = async (req, res) => {
 
       await Ip.create(data);
 
-      //mail it 
+      //mail it
 
-      mail(user.firstName,device.country, device.city, device.query, message,user.email, date)
+      mail(
+        user.firstName,
+        device.country,
+        device.city,
+        device.query,
+        message,
+        user.email,
+        date
+      );
     }
 
-    const token = jwt.sign(
-      { email: user.email },
-      process.env.key,
-      { expiresIn: "24h" }
-    );
+    const token = jwt.sign({ email: user.email }, process.env.key, {
+      expiresIn: "24h",
+    });
 
     const sanitizedUser = user.toObject();
     delete sanitizedUser.password;
@@ -147,6 +164,20 @@ export const yupNameValidation = async (req, res, next) => {
 
 export const updateName = async (req, res) => {
   const name = req.body;
+
+  const renameDate = await User.findOne({ _id: req.userId });
+
+  const formatted = moment(renameDate.updatedAt).format("YYYY-MM-DD HH:mm:ss");
+  console.log(formatted);
+
+  const currentDate = moment().format("YYYY-MM-DD HH:mm:ss");
+  console.log(currentDate);
+  const diff = moment(currentDate).diff(moment(formatted), "days");
+ 
+  if(diff <= 15){
+    return res.status(400).json({ message: "You can only update your name once every 15 days." });
+  }
+
 
   try {
     await User.updateMany(
