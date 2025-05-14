@@ -13,6 +13,7 @@ import { mail } from "../authMailer/login.validation.mail.js";
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
 
+//signup user validation
 export const signupUserValidation = async (req, res, next) => {
   try {
     const userSignupData = req.body;
@@ -23,6 +24,7 @@ export const signupUserValidation = async (req, res, next) => {
   next();
 };
 
+//after signup validation create account
 export const signupUser = async (req, res) => {
   const userData = req.body;
 
@@ -43,11 +45,9 @@ export const signupUser = async (req, res) => {
       const response = await fetch(url);
 
       if (!response.ok) {
-        return res
-          .status(400)
-          .json({
-            message: "Something went wrong while fetching device info.",
-          });
+        return res.status(400).json({
+          message: "Something went wrong while fetching device info.",
+        });
       }
 
       const jsonData = await response.json();
@@ -69,6 +69,7 @@ export const signupUser = async (req, res) => {
   }
 };
 
+//login user validation
 export const loginUserValidation = async (req, res, next) => {
   const loginUserData = req.body;
 
@@ -83,7 +84,7 @@ export const loginUserValidation = async (req, res, next) => {
   }
   next();
 };
-
+//after login validation create user account
 export const loginUser = async (req, res) => {
   const userData = req.body;
 
@@ -148,6 +149,8 @@ export const loginUser = async (req, res) => {
   }
 };
 
+//for updata
+//name validation first name or last name for update
 export const yupNameValidation = async (req, res, next) => {
   const { firstName, lastName } = req.body;
 
@@ -164,6 +167,7 @@ export const yupNameValidation = async (req, res, next) => {
   next();
 };
 
+//update name from database after validation
 export const updateName = async (req, res) => {
   const name = req.body;
 
@@ -174,11 +178,12 @@ export const updateName = async (req, res) => {
   const currentDate = moment().format("YYYY-MM-DD HH:mm:ss");
 
   const diff = moment(currentDate).diff(moment(formatted), "days");
- 
-  if(diff <= 15){
-    return res.status(400).json({ message: "You can only update your name once every 15 days." });
-  }
 
+  if (diff <= 15) {
+    return res
+      .status(400)
+      .json({ message: "You can only update your name once every 15 days." });
+  }
 
   try {
     await User.updateMany(
@@ -198,72 +203,146 @@ export const updateName = async (req, res) => {
   }
 };
 
-
-
+//update profile picture
 export const uploadProfile = async (req, res) => {
   const file = req.file;
 
-
- 
-try {
+  try {
     // Define storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "./upload/profiles"),
-  filename: (req, file, cb) => {
-    const ext = file.mimetype.split("/")[1];
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${ext}`;
-    cb(null, uniqueName);
-  },
-});
+    const storage = multer.diskStorage({
+      destination: (req, file, cb) => cb(null, "./upload/profiles"),
+      filename: (req, file, cb) => {
+        const ext = file.mimetype.split("/")[1];
+        const uniqueName = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}.${ext}`;
+        cb(null, uniqueName);
+      },
+    });
 
-// Allow only jpg, jpeg, png
-const fileFilter = (req, file, cb) => {
-  const allowed = ["image/jpeg", "image/jpg", "image/png"];
-  if (allowed.includes(file.mimetype)) cb(null, true);
-  else cb(new Error("Only jpg, jpeg, png allowed"), false);
+    // Allow only jpg, jpeg, png
+    const fileFilter = (req, file, cb) => {
+      const allowed = ["image/jpeg", "image/jpg", "image/png"];
+      if (allowed.includes(file.mimetype)) cb(null, true);
+      else cb(new Error("Only jpg, jpeg, png allowed"), false);
+    };
+
+    //function call multer
+    const upload = multer({ storage });
+    //split filename and extention and get extention
+    const filext = file.mimetype.split("/")[1];
+    //extract filename from file
+    const filename = file.filename;
+    //merge filename and extention
+    const name = `${file.filename}.${filext}`;
+    //get the path of the file
+    const dst = path.join(`./upload/profiles/${name}`);
+
+    if (!upload) {
+      return res.status(400).json({ message: "File not uploaded." });
+    }
+
+    //check profile photo is already exist or not
+
+    const user = await User.findOne({ email: req.userData.email });
+    console.log(user.profile);
+
+    await User.updateMany(
+      {
+        email: req.userData.email,
+      },
+      {
+        $set: {
+          profile: dst,
+        },
+      }
+    );
+
+    return res.status(200).json({ message: "profile uploaded successfully." });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
 };
 
+//update email for security reason
 
-//function call multer
-const upload = multer({storage})
-//split filename and extention and get extention 
-const filext = file.mimetype.split("/")[1];
-//extract filename from file
-const filename = file.filename
-//merge filename and extention
-const name = `${file.filename}.${filext}`;
-//get the path of the file
-const dst = path.join(`./upload/profiles/${name}`);
+export const updateEmail = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    //email and password validation
+    await yup
+      .object({
+        email: yup
+          .string()
+          .email("Please enter valid email.")
+          .lowercase()
+          .trim()
+          .required("Email is required."),
+        password: yup.string().required("Password is required."),
+      })
+      .validate({ email, password });
 
-if(!upload){
-  return res.status(400).json({ message: "File not uploaded." });
-}
+    //check email is already exist or not
+    const user = await User.findOne({ email: req.userData.email });
 
-//check profile photo is already exist or not
-
-const user = await User.findOne({ email: req.userData.email });
-console.log(user.profile);
-
-
-await User.updateMany({
-  email: req.userData.email,
-},
-{
-    $set: {
-      profile: dst,
+    if (!user) {
+      return res.status(400).json({ message: "Unauthorized" });
     }
-  })
+
+    //to change email first check the password is correct or not
+
+    //if password is correct then update the email
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(400).json({ message: "Please enter your correct password." });
+    }
+
+    //if user exist then check the email is already exist or not
+
+    if (user.email === email) {
+      return res.status(400).json({ message: "You already added this email." });
+    }
+
+    await User.updateMany(
+      {
+        email: req.userData.email,
+      },
+      {
+        $set: {
+          email: email,
+        },
+      }
+    );
+    return res.status(200).json({ message: "Email updated successfully." });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+//update password function 
+export const updatePassword = async(req,res)=>{
+
+  const {oldPassword,newPassword} = req.body;
+  console.log(oldPassword,newPassword);
+
+  try {
+    //user check authorized user or not 
+
+    //yup validation for old password and new password
+ await yup
+      .object({
+        oldPassword: yup.string().required("Old password is required."),
+        newPassword: yup.string().required("New password is required."),
+      })
+      .validate({ oldPassword, newPassword });
+
+//check user existance or check valid email/user
+
   
 
-return res.status(200).json({ message: "profile uploaded successfully." });
-
-  
-
-} catch (error) {
-  return res.status(400).json({message: error.message});
-}
-
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
 
 }
-
-
