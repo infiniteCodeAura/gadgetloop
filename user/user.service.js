@@ -1,17 +1,17 @@
 import bcrypt from "bcrypt";
 import dayjs from "dayjs";
 import jwt from "jsonwebtoken";
-import yup from "yup";
 import { publicIpv4 } from "public-ip";
+import yup from "yup";
 import { loginIp } from "../device/device.data.js";
 import Ip from "../device/device.model.js";
 
-import User from "./user.model.js";
-import { yupPhotoValidation, yupSignupValidation } from "./user.validation.js";
-import { mail } from "../authMailer/login.validation.mail.js";
 import moment from "moment";
-import path from "path";
 import multer from "multer";
+import path from "path";
+import { mail } from "../authMailer/login.validation.mail.js";
+import User from "./user.model.js";
+import { yupSignupValidation } from "./user.validation.js";
 
 export const signupUserValidation = async (req, res, next) => {
   try {
@@ -170,10 +170,9 @@ export const updateName = async (req, res) => {
   const renameDate = await User.findOne({ _id: req.userId });
 
   const formatted = moment(renameDate.updatedAt).format("YYYY-MM-DD HH:mm:ss");
-  console.log(formatted);
 
   const currentDate = moment().format("YYYY-MM-DD HH:mm:ss");
-  console.log(currentDate);
+
   const diff = moment(currentDate).diff(moment(formatted), "days");
  
   if(diff <= 15){
@@ -199,14 +198,6 @@ export const updateName = async (req, res) => {
   }
 };
 
-export const photoValidation = async(req, res, next) => {
-  const  profile  = req.files;
-console.log(profile);
- if (req.files && Array.isArray(req.files) && req.files.length > 1) {
-    return res.status(400).json({ message: "Multiple file uploads are not allowed." });
-  }
-  next();
-}
 
 
 export const uploadProfile = async (req, res) => {
@@ -247,6 +238,13 @@ const dst = path.join(`./upload/profiles/${name}`);
 if(!upload){
   return res.status(400).json({ message: "File not uploaded." });
 }
+
+//check profile photo is already exist or not
+
+const user = await User.findOne({ email: req.userData.email });
+console.log(user.profile);
+
+
 await User.updateMany({
   email: req.userData.email,
 },
