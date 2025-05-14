@@ -10,6 +10,10 @@ role:string().required("User role is required. ").oneOf(["buyer","seller"])
 
 })
 
-//login user data validation 
+//user profile update validation
 
+export let yupPhotoValidation = yup.object({
 
+profile: yup.string().required("Profile is required. ").trim().max(1,"only one photo is allowed")
+
+})

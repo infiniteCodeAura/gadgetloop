@@ -7,7 +7,7 @@ import { loginIp } from "../device/device.data.js";
 import Ip from "../device/device.model.js";
 
 import User from "./user.model.js";
-import { yupSignupValidation } from "./user.validation.js";
+import { yupPhotoValidation, yupSignupValidation } from "./user.validation.js";
 import { mail } from "../authMailer/login.validation.mail.js";
 import moment from "moment";
 import path from "path";
@@ -199,6 +199,14 @@ export const updateName = async (req, res) => {
   }
 };
 
+export const photoValidation = async(req, res, next) => {
+  const  profile  = req.files;
+console.log(profile);
+ if (req.files && Array.isArray(req.files) && req.files.length > 1) {
+    return res.status(400).json({ message: "Multiple file uploads are not allowed." });
+  }
+  next();
+}
 
 
 export const uploadProfile = async (req, res) => {
@@ -225,14 +233,30 @@ const fileFilter = (req, file, cb) => {
 };
 
 
-
-console.log(file);
-
+//function call multer
 const upload = multer({storage})
+//split filename and extention and get extention 
+const filext = file.mimetype.split("/")[1];
+//extract filename from file
+const filename = file.filename
+//merge filename and extention
+const name = `${file.filename}.${filext}`;
+//get the path of the file
+const dst = path.join(`./upload/profiles/${name}`);
 
 if(!upload){
   return res.status(400).json({ message: "File not uploaded." });
 }
+await User.updateMany({
+  email: req.userData.email,
+},
+{
+    $set: {
+      profile: dst,
+    }
+  })
+  
+
 return res.status(200).json({ message: "profile uploaded successfully." });
 
   
