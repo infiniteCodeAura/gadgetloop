@@ -295,7 +295,9 @@ export const updateEmail = async (req, res) => {
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(400).json({ message: "Please enter your correct password." });
+      return res
+        .status(400)
+        .json({ message: "Please enter your correct password." });
     }
 
     //if user exist then check the email is already exist or not
@@ -320,29 +322,74 @@ export const updateEmail = async (req, res) => {
   }
 };
 
-//update password function 
-export const updatePassword = async(req,res)=>{
-
-  const {oldPassword,newPassword} = req.body;
-  console.log(oldPassword,newPassword);
+//update password function
+export const updatePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  // console.log(oldPassword,newPassword);
 
   try {
-    //user check authorized user or not 
+    //user check authorized user or not
 
     //yup validation for old password and new password
- await yup
+    await yup
       .object({
-        oldPassword: yup.string().required("Old password is required."),
-        newPassword: yup.string().required("New password is required."),
+        newPassword: yup
+          .string()
+          .required("New password is required.")
+          .matches(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
+            "New password must be at least 6 characters and include uppercase, lowercase, number, and special character."
+          ),
       })
       .validate({ oldPassword, newPassword });
 
-//check user existance or check valid email/user
+    //check user existance or check valid email/user
 
-  
+    const user = await User.findOne({ email: req.userData.email });
 
+    if (!user) {
+      return res.status(400).json({ message: "Unauthorized." });
+    }
+
+    //check old password is correct or not
+    const checkPassword = await bcrypt.compare(oldPassword, user.password);
+
+    const hashPassword = await bcrypt.hash(newPassword, 10);
+
+    if (!checkPassword) {
+      return res
+        .status(400)
+        .json({ message: "Please enter correct password." });
+    }
+
+    //check old or new password is equal or not
+    if (oldPassword === newPassword) {
+      return res.status(400).json({
+        message: "Your new password can’t be the same as your old password. ",
+      });
+    }
+
+    //update password
+    await User.updateOne(
+      { email: req.userData.email },
+      {
+        $set: {
+          password: hashPassword,
+        },
+      }
+    );
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
+};
+
+
+//forgot password function 
+export const validateForgotPasswordData = async(req,res,next)=>{
+
+ const {email,code} = req.body;
+
 
 }
+
+

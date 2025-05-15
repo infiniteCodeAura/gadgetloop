@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
 profile: {
   type: String,
 },
+code:{
+  type:String,
+  
+},
 
   role: {
     type: String,
