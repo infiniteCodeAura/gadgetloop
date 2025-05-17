@@ -3,15 +3,16 @@ import dayjs from "dayjs";
 import jwt from "jsonwebtoken";
 import { publicIpv4 } from "public-ip";
 import yup from "yup";
-import { loginIp } from "../device/device.data.js";
-import Ip from "../device/device.model.js";
-
+import { loginIp } from "../utils/device/device.data.js";
+import Ip from "../utils/device/device.model.js";
 import moment from "moment";
 import multer from "multer";
 import path from "path";
 import { mail } from "../authMailer/login.validation.mail.js";
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
+import { otpGen } from "../utils/device/otp.gen.js";
+import mailCode from "../authMailer/forgot.password.js";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
@@ -103,6 +104,7 @@ export const loginUser = async (req, res) => {
     }
 
     const ipv4 = await publicIpv4();
+    // const ipv4 = "103.225.244.20"
     const signupUserIp = await User.findOne({ email: userData.email });
 
     let message =
@@ -387,8 +389,41 @@ export const updatePassword = async (req, res) => {
 //forgot password function 
 export const validateForgotPasswordData = async(req,res,next)=>{
 
- const {email,code} = req.body;
+ const {email} = req.body;
+//email validation with error handling 
+ try {
+  await yup.object({
+    email: yup.string().required("Please enter your email.").trim().lowercase().email("Please enter valid email. "),
+  }).validate({email})
+ } catch (error) {
+  return res.status(400).json({message: error.message});
+ }
+//email validation with error handling 
+try {
+   //email validation with check existance 
 
+   const user = await User.findOne({email: email});
+   
+   if(!user){
+    return res.status(404).json({message: "User not exist with this email. "})
+   }
+  
+  const otp = await otpGen()
+  // const data = {...user.firstName,otp}
+  
+  if(!otp){
+    return res.status(400).json({message: "Something went wrong. "})
+  }
+
+//email otp 
+  //  mail(otp,user.email,user.firstName)
+  mailCode(otp,user.email,user.firstName)
+
+
+
+} catch (error) {
+  return res.status(400).json({message: error.message});
+}
 
 }
 
