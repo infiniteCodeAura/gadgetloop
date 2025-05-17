@@ -13,6 +13,7 @@ import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
 import { otpGen } from "../utils/device/otp.gen.js";
 import mailCode from "../authMailer/forgot.password.js";
+import { emailSenitize, sanitizeData } from "../utils/senitizeData.js";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
@@ -390,6 +391,11 @@ export const updatePassword = async (req, res) => {
 export const validateForgotPasswordData = async(req,res,next)=>{
 
  const {email} = req.body;
+ await sanitizeData(email);
+
+const sanitizeEmail = await emailSenitize(email)
+console.log(sanitizeEmail)
+
 //email validation with error handling 
  try {
   await yup.object({
