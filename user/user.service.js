@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import jwt from "jsonwebtoken";
 import { publicIpv4 } from "public-ip";
 import yup from "yup";
+import validator from "validator"
 import { loginIp } from "../utils/device/device.data.js";
 import Ip from "../utils/device/device.model.js";
 import moment from "moment";
@@ -390,11 +391,14 @@ export const updatePassword = async (req, res) => {
 //forgot password function 
 export const validateForgotPasswordData = async(req,res,next)=>{
 
- const {email} = req.body;
- await sanitizeData(email);
+ let {email} = req.body;
+  sanitizeData(email);
 
-const sanitizeEmail = await emailSenitize(email)
-console.log(sanitizeEmail)
+email =  emailSenitize(email)
+console.log(email)
+if(!validator.isEmail(email)){
+  return res.status(400).json({message: "Invalid email "})
+}
 
 //email validation with error handling 
  try {

@@ -13,12 +13,14 @@ export const sanitizeData = (input)=>{
 export const emailSenitize = (input)=>{
     let rawEmail = input?.toString().trim() || "";
     //sanitize email 
-    let email = sanitizeHtml(rawEmail,{
+    rawEmail = sanitizeHtml(rawEmail,{
         allowedTags: [],
         allowedAttributes: {},
     })
     //email validator 
-    email = validator.normalizeEmail(email);
+   const email = validator.normalizeEmail(rawEmail,{
+    gmail_remove_dots: false
+   });
 
     return email;
 
