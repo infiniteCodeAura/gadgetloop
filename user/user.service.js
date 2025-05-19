@@ -3,16 +3,16 @@ import dayjs from "dayjs";
 import jwt from "jsonwebtoken";
 import { publicIpv4 } from "public-ip";
 import yup from "yup";
-import validator from "validator"
-import { loginIp } from "../utils/device/device.data.js";
-import Ip from "../utils/device/device.model.js";
+import validator from "validator";
+import Ip from "./device/device.model.js";
 import moment from "moment";
 import multer from "multer";
 import path from "path";
+import { loginIp } from "./device/device.data.js";
 import { mail } from "../authMailer/login.validation.mail.js";
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
-import { otpGen } from "../utils/device/otp.gen.js";
+import { otpGen } from "../utils/otp.gen.js";
 import mailCode from "../authMailer/forgot.password.js";
 import { emailSenitize, sanitizeData } from "../utils/senitizeData.js";
 
@@ -20,6 +20,20 @@ import { emailSenitize, sanitizeData } from "../utils/senitizeData.js";
 export const signupUserValidation = async (req, res, next) => {
   try {
     const userSignupData = req.body;
+  let firstName = sanitizeData(userSignupData.firstName);
+    let lastName = sanitizeData(userSignupData.lastName);
+    let email = emailSenitize(userSignupData.email);
+    let role = sanitizeData(userSignupData.role);
+
+
+userSignupData.firstName = firstName;
+userSignupData.lastName = lastName;
+userSignupData.email = email;
+userSignupData.role = role;
+
+
+
+
     await yupSignupValidation.validate(userSignupData, { abortEarly: false });
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -29,9 +43,23 @@ export const signupUserValidation = async (req, res, next) => {
 
 //after signup validation create account
 export const signupUser = async (req, res) => {
-  const userData = req.body;
+  let userData = req.body;
 
   try {
+
+    let firstName = sanitizeData(userData.firstName);
+    let lastName = sanitizeData(userData.lastName);
+    let email = emailSenitize(userData.email);
+    let role = sanitizeData(userData.role);
+
+
+userData.firstName = firstName;
+userData.lastName = lastName;
+userData.email = email;
+userData.role = role;
+
+
+
     const existingUser = await User.findOne({ email: userData.email });
     if (existingUser) {
       return res
@@ -74,7 +102,10 @@ export const signupUser = async (req, res) => {
 
 //login user validation
 export const loginUserValidation = async (req, res, next) => {
-  const loginUserData = req.body;
+  let loginUserData = req.body;
+
+  let email = emailSenitize(loginUserData.email);
+  loginUserData.email = email;
 
   try {
     await yup
@@ -89,7 +120,10 @@ export const loginUserValidation = async (req, res, next) => {
 };
 //after login validation create user account
 export const loginUser = async (req, res) => {
-  const userData = req.body;
+  let userData = req.body;
+
+  let email = emailSenitize(userData.email);
+  userData.email = email;
 
   try {
     const user = await User.findOne({ email: userData.email });
@@ -156,7 +190,12 @@ export const loginUser = async (req, res) => {
 //for updata
 //name validation first name or last name for update
 export const yupNameValidation = async (req, res, next) => {
-  const { firstName, lastName } = req.body;
+  let { firstName, lastName } = req.body;
+
+  firstName = sanitizeData(firstName);
+  lastName = sanitizeData(lastName);
+  req.body.firstName = firstName;
+  req.body.lastName = lastName;
 
   try {
     await yup
@@ -173,7 +212,12 @@ export const yupNameValidation = async (req, res, next) => {
 
 //update name from database after validation
 export const updateName = async (req, res) => {
-  const name = req.body;
+  let { firstName, lastName } = req.body;
+
+  firstName = sanitizeData(firstName);
+  lastName = sanitizeData(lastName);
+  req.body.firstName = firstName;
+  req.body.lastName = lastName;
 
   const renameDate = await User.findOne({ _id: req.userId });
 
@@ -181,7 +225,7 @@ export const updateName = async (req, res) => {
 
   const currentDate = moment().format("YYYY-MM-DD HH:mm:ss");
 
-  const diff = moment(currentDate).diff(moment(formatted), "days");
+  const diff = moment(currentDate).diff(moment(formatted), "second");
 
   if (diff <= 15) {
     return res
@@ -194,8 +238,8 @@ export const updateName = async (req, res) => {
       { email: req.userData.email },
       {
         $set: {
-          firstName: name.firstName,
-          lastName: name.lastName,
+          firstName: firstName,
+          lastName: lastName,
         },
       }
     );
@@ -249,7 +293,6 @@ export const uploadProfile = async (req, res) => {
     //check profile photo is already exist or not
 
     const user = await User.findOne({ email: req.userData.email });
-    console.log(user.profile);
 
     await User.updateMany(
       {
@@ -271,8 +314,16 @@ export const uploadProfile = async (req, res) => {
 //update email for security reason
 
 export const updateEmail = async (req, res) => {
-  const { email, password } = req.body;
+  // let { email, password } = req.body;
+  let email = emailSenitize(req.body.email);
+  let password = req.body.password;
   try {
+    email = emailSenitize(email);
+
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: "Invalid email format." });
+    }
+
     //email and password validation
     await yup
       .object({
@@ -328,10 +379,12 @@ export const updateEmail = async (req, res) => {
 
 //update password function
 export const updatePassword = async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
+  let { oldPassword, newPassword } = req.body;
   // console.log(oldPassword,newPassword);
 
   try {
+    //validation
+
     //user check authorized user or not
 
     //yup validation for old password and new password
@@ -387,54 +440,55 @@ export const updatePassword = async (req, res) => {
   }
 };
 
+//forgot password function
+export const validateForgotPasswordData = async (req, res, next) => {
+  let { email } = req.body;
+  //  sanitizeData(email);
 
-//forgot password function 
-export const validateForgotPasswordData = async(req,res,next)=>{
+  email = emailSenitize(email);
 
- let {email} = req.body;
-  sanitizeData(email);
-
-email =  emailSenitize(email)
-console.log(email)
-if(!validator.isEmail(email)){
-  return res.status(400).json({message: "Invalid email "})
-}
-
-//email validation with error handling 
- try {
-  await yup.object({
-    email: yup.string().required("Please enter your email.").trim().lowercase().email("Please enter valid email. "),
-  }).validate({email})
- } catch (error) {
-  return res.status(400).json({message: error.message});
- }
-//email validation with error handling 
-try {
-   //email validation with check existance 
-
-   const user = await User.findOne({email: email});
-   
-   if(!user){
-    return res.status(404).json({message: "User not exist with this email. "})
-   }
-  
-  const otp = await otpGen()
-  // const data = {...user.firstName,otp}
-  
-  if(!otp){
-    return res.status(400).json({message: "Something went wrong. "})
+  if (!validator.isEmail(email)) {
+    return res.status(400).json({ message: "Invalid email " });
   }
 
-//email otp 
-  //  mail(otp,user.email,user.firstName)
-  mailCode(otp,user.email,user.firstName)
+  //email validation with error handling
+  try {
+    await yup
+      .object({
+        email: yup
+          .string()
+          .required("Please enter your email.")
+          .trim()
+          .lowercase()
+          .email("Please enter valid email. "),
+      })
+      .validate({ email });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+  //email validation with error handling
+  try {
+    //email validation with check existance
 
+    const user = await User.findOne({ email: email });
 
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User not exist with this email. " });
+    }
 
-} catch (error) {
-  return res.status(400).json({message: error.message});
-}
+    const otp = await otpGen();
+    // const data = {...user.firstName,otp}
 
-}
+    if (!otp) {
+      return res.status(400).json({ message: "Something went wrong. " });
+    }
 
-
+    //email otp
+    //  mail(otp,user.email,user.firstName)
+    mailCode(otp, user.email, user.firstName);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
