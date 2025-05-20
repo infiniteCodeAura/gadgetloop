@@ -23,7 +23,7 @@ export const signupUserValidation = async (req, res, next) => {
     const userSignupData = req.body;
     let firstName = sanitizeData(userSignupData.firstName);
     let lastName = sanitizeData(userSignupData.lastName);
-    let email = emailSenitize(userSignupData.email);
+    let email = emailSanitize(userSignupData.email);
     let role = sanitizeData(userSignupData.role);
 
     userSignupData.firstName = firstName;
@@ -43,9 +43,9 @@ export const signupUser = async (req, res) => {
   let userData = req.body;
 
   try {
-    let firstName = sanitizeData(userData.firstName);
+    let firstName = sanitizeData(userData.firstName) ;
     let lastName = sanitizeData(userData.lastName);
-    let email = emailSenitize(userData.email);
+    let email = emailSanitize(userData.email);
     let role = sanitizeData(userData.role);
 
     userData.firstName = firstName;
@@ -97,7 +97,7 @@ export const signupUser = async (req, res) => {
 export const loginUserValidation = async (req, res, next) => {
   let loginUserData = req.body;
 
-  let email = emailSenitize(loginUserData.email);
+  let email = emailSanitize(loginUserData.email);
   loginUserData.email = email;
 
   try {
@@ -115,7 +115,7 @@ export const loginUserValidation = async (req, res, next) => {
 export const loginUser = async (req, res) => {
   let userData = req.body;
 
-  let email = emailSenitize(userData.email);
+  let email = emailSanitize(userData.email);
   userData.email = email;
 
   try {
@@ -308,10 +308,10 @@ export const uploadProfile = async (req, res) => {
 
 export const updateEmail = async (req, res) => {
   // let { email, password } = req.body;
-  let email = emailSenitize(req.body.email);
+  let email = emailSanitize(req.body.email);
   let password = req.body.password;
   try {
-    email = emailSenitize(email);
+    email = emailSanitize(email);
 
     if (!validator.isEmail(email)) {
       return res.status(400).json({ message: "Invalid email format." });
@@ -505,10 +505,4 @@ return res.status(200).json({message: "Please check your email for OTP code. "})
 };
 
 
-export const rateLimitIp = async(req ,res ,next )=>{
-  console.log(req.body)
- 
-  console.log("hi")
 
-
-}
