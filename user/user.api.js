@@ -3,6 +3,7 @@ import multer from "multer";
 import { isUser } from "../authentication/user.authentication.js";
 import { loginUser, loginUserValidation, rateLimitIp, signupUser, updateEmail, updateName, updatePassword, uploadProfile, validateForgotPasswordData, yupNameValidation } from "./user.service.js";
 import { signupUserValidation } from "./user.service.js ";
+import { loginLimiter } from "../utils/rete.limit.js";
 const upload = multer({ dest: "./upload/profiles/" });
 
 const router = express.Router()
@@ -32,7 +33,7 @@ router.put("/user/profile/email",isUser,updateEmail)
 router.put("/user/profile/password",isUser,updatePassword)
 
 //password forgot api 
-router.put("/user/password/forgot",validateForgotPasswordData);
+router.put("/user/password/forgot",loginLimiter,validateForgotPasswordData);
 
 router.post("/rate",rateLimitIp)
 

@@ -438,7 +438,7 @@ export const updatePassword = async (req, res) => {
 export const validateForgotPasswordData = async (req, res, next) => {
   let { email } = req.body;
   //  sanitizeData(email);
-  email = emailSenitize(email);
+  email = emailSanitize(email);
 
   if (!validator.isEmail(email)) {
     return res.status(400).json({ message: "Invalid email " });
@@ -497,7 +497,7 @@ setTimeout(async()=>{
   }});
 },2*60*1000)
 
-
+return res.status(200).json({message: "Please check your email for OTP code. "})
 
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -508,7 +508,7 @@ setTimeout(async()=>{
 export const rateLimitIp = async(req ,res ,next )=>{
   console.log(req.body)
  
-  console.log({... rateLimit()})
+  console.log("hi")
 
 
 }
