@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
 import User from "../user/user.model.js";
 
 export const isUser = async (req, res, next) => {
@@ -44,6 +43,6 @@ req.userData = user;
 
 
 export const isBuyer = (req,res,next) => {
-    console.log("object");
+    // console.log("object");
 }
 

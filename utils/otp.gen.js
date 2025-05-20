@@ -7,7 +7,7 @@ export const otpGen = async()=>{
 let otp ;
     try {
        totp.options = {step:0.001}
-   const token = await totp.generate(process.env.otpKey)
+   const token = await totp.generate(secret)
    otp = token;
         
     } catch (error) {

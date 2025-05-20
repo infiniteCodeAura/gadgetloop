@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 
  const mailCode = async (otp,email,name) => {
-  console.log("object")
   // Configure transporter
   const transporter = nodemailer.createTransport({
     service: "gmail",

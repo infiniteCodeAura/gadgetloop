@@ -14,25 +14,22 @@ import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
 import { otpGen } from "../utils/otp.gen.js";
 import mailCode from "../authMailer/forgot.password.js";
-import { emailSenitize, sanitizeData } from "../utils/senitizeData.js";
+import { emailSanitize, sanitizeData } from "../utils/sanitizeData.js";
+import {rateLimit} from "express-rate-limit"
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
   try {
     const userSignupData = req.body;
-  let firstName = sanitizeData(userSignupData.firstName);
+    let firstName = sanitizeData(userSignupData.firstName);
     let lastName = sanitizeData(userSignupData.lastName);
     let email = emailSenitize(userSignupData.email);
     let role = sanitizeData(userSignupData.role);
 
-
-userSignupData.firstName = firstName;
-userSignupData.lastName = lastName;
-userSignupData.email = email;
-userSignupData.role = role;
-
-
-
+    userSignupData.firstName = firstName;
+    userSignupData.lastName = lastName;
+    userSignupData.email = email;
+    userSignupData.role = role;
 
     await yupSignupValidation.validate(userSignupData, { abortEarly: false });
   } catch (error) {
@@ -46,19 +43,15 @@ export const signupUser = async (req, res) => {
   let userData = req.body;
 
   try {
-
     let firstName = sanitizeData(userData.firstName);
     let lastName = sanitizeData(userData.lastName);
     let email = emailSenitize(userData.email);
     let role = sanitizeData(userData.role);
 
-
-userData.firstName = firstName;
-userData.lastName = lastName;
-userData.email = email;
-userData.role = role;
-
-
+    userData.firstName = firstName;
+    userData.lastName = lastName;
+    userData.email = email;
+    userData.role = role;
 
     const existingUser = await User.findOne({ email: userData.email });
     if (existingUser) {
@@ -435,6 +428,7 @@ export const updatePassword = async (req, res) => {
         },
       }
     );
+    return res.status(200).json({ message: "Password updated successfully. " });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -444,7 +438,6 @@ export const updatePassword = async (req, res) => {
 export const validateForgotPasswordData = async (req, res, next) => {
   let { email } = req.body;
   //  sanitizeData(email);
-
   email = emailSenitize(email);
 
   if (!validator.isEmail(email)) {
@@ -466,6 +459,7 @@ export const validateForgotPasswordData = async (req, res, next) => {
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
+
   //email validation with error handling
   try {
     //email validation with check existance
@@ -480,15 +474,41 @@ export const validateForgotPasswordData = async (req, res, next) => {
 
     const otp = await otpGen();
     // const data = {...user.firstName,otp}
-
     if (!otp) {
       return res.status(400).json({ message: "Something went wrong. " });
     }
 
     //email otp
     //  mail(otp,user.email,user.firstName)
-    mailCode(otp, user.email, user.firstName);
+    await mailCode(otp, user.email, user.firstName);
+
+//store code on database for temporary time 
+
+
+
+await User.updateOne({email: email},{$set: {
+  code: otp
+}})
+
+//delete otp from db 
+setTimeout(async()=>{
+  await User.updateOne({email: email},{$set: {
+    code: null
+  }});
+},2*60*1000)
+
+
+
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
 };
+
+
+export const rateLimitIp = async(req ,res ,next )=>{
+  console.log(req.body)
+ 
+  console.log({... rateLimit()})
+
+
+}

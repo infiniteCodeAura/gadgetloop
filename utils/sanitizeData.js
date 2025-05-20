@@ -10,7 +10,7 @@ export const sanitizeData = (input) => {
   return data;
 };
 
-export const emailSenitize = (input) => {
+export const emailSanitize = (input) => {
   let rawEmail = input?.toString().trim() || "";
   //sanitize email
   rawEmail = sanitizeHtml(rawEmail, {
