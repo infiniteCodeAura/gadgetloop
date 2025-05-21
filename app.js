@@ -1,6 +1,8 @@
 import express from "express";
-import buyerRouter from "./user/user.api.js";
+import userRouter from "./user/user.api.js";
 import { connectDb } from "./dbConnect.js";
+import buyerRouter from "./buyer/buyer.api.js";
+import sellerRouter from "./seller/seller.api.js";
 
 const app = express();
 
@@ -12,8 +14,9 @@ app.use((err, req, res, next) => {
 });
 connectDb()
  
-app.use(buyerRouter)
-
+app.use("/api/v1",userRouter)
+app.use("/api/v2",sellerRouter)
+app.use("/api/v3",buyerRouter)
 
 
 
