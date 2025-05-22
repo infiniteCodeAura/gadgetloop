@@ -4,7 +4,7 @@ import { Product } from "./product.model.js";
 import { yupProductValidation } from "./product.validation.js";
 import yup from "yup";
 /*
-edit product
+add product
 */
 //sanitize user input data
 export const validateAddProduct = async (req, res, next) => {
@@ -157,3 +157,40 @@ export const editProductData = async (req, res, next) => {
     return res.status(400).json({ message: error.message });
   }
 };
+
+/*
+delete product
+*/
+export const deleteProduct = async (req, res, next) => {
+  const productId = req.params.id;
+
+  //check mongoid validity
+  try {
+    const check = await checkMongoId(productId);
+    if (!check) {
+      return res.status(400).json({ message: "Invalid product id. " });
+    }
+
+    //check product is available or not
+    const product = await Product.findOne({ _id: productId });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found. " });
+    }
+
+    await Product.updateOne(
+      { _id: productId },
+      {
+        $set: {
+          isArchived: true,
+        },
+      }
+    );
+
+    return res.status(200).json({ message: "Product Deleted. " });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+

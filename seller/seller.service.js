@@ -15,7 +15,11 @@ export const isOwner = async(req ,res ,next )=>{
 
         if(product.userId.toString() !== req.userId.toString()){
            
-return res.status(403).json({message:"You can't edit this product. "})
+return res.status(403).json({message:"You don't have the right to change this. "})
+        }
+
+        if(product.isArchived == true){
+            return res.status(404).json({message: "Products not found"})
         }
 
       

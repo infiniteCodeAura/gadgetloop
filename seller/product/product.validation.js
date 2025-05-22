@@ -34,7 +34,6 @@ export const yupProductValidation = yup.object({
     .required("Brand name is required. ")
     .trim()
     .max(15, "Brand exceed 15 characters!!"),
-    
 
   quantity: yup
 
