@@ -3,6 +3,7 @@ import userRouter from "./user/user.api.js";
 import { connectDb } from "./dbConnect.js";
 import buyerRouter from "./buyer/buyer.api.js";
 import sellerRouter from "./seller/seller.api.js";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 
@@ -12,6 +13,21 @@ app.use((err, req, res, next) => {
   err = err ? err.toString() : "Something went wrong.";
   return res.status(400).json({ message: err });
 });
+
+//limit  for ddos protectation 
+export const globalRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // Limit each IP to 100 requests per windowMs
+  message: {
+    status: 429,
+    message: "Too many requests, please try again later.",
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false,  // Disable the `X-RateLimit-*` headers
+});
+
+app.use(globalRateLimiter)
+
 connectDb()
  
 app.use("/api/v1",userRouter)
