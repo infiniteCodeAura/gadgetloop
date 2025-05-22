@@ -5,7 +5,7 @@ export const yupProductValidation = yup.object({
     .string()
     .required()
     .trim()
-    .max(100, "product name exceed 100 characters!!")
+    .max(200, "product name exceed 100 characters!!")
     .min(2, "poduct name should contain 2 characters!!"),
   description: yup
     .string()

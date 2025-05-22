@@ -43,5 +43,5 @@
   "devDependencies": {
     "nodemon": "^3.1.10"
   },
-  "description": ""
+  "description": "Start 2. Signup Flow Input: Name, Email, Password, Role (Buyer/Seller)"
 }

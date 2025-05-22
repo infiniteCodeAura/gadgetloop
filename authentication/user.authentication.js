@@ -136,7 +136,7 @@ try {
 //check is buyer 
 if(user.role !== "seller")
 {
- return res.status(403).json({ message: "Forbidden: Only buyers allowed." });
+ return res.status(403).json({ message: "Forbidden: Only seller allowed." });
 } 
 
 user.password = undefined;

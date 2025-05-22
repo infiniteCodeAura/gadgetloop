@@ -12,20 +12,20 @@ const productSchema = new mongoose.Schema(
 
     description: {
       type: String,
-      maxlength: 2000,
+      maxlength:  [2000, "Description must be at most 15 characters long"],
       trim: true,
       required: true,
     },
 
     price: {
-      type: String,
+      type: Number,
       required: true,
       trim: true,
     },
     brand: {
       type: String,
       trim: true,
-      maxlength: 15,
+      maxlength:  15,
       required: true,
     },
     quantity: {
@@ -37,7 +37,7 @@ const productSchema = new mongoose.Schema(
       required: true,
     },
 
-    productOwnerId: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
