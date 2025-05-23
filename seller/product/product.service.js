@@ -161,33 +161,39 @@ export const editProductData = async (req, res, next) => {
 /*
 view particular product data
 */
-export const validateView = async(req,res,next)=>{
-
-  //get id from params 
+export const validateView = async (req, res, next) => {
+  //get id from params
   const mongoId = req.params.id;
-  
- try {
- const checkMongoIdValidity =  checkMongoId(mongoId)
- if(!checkMongoIdValidity){
-  return res.status(400).json({message: "Invalid id. "})
- }
- } catch (error) {
- 
-  return res.status(400).json({message: "Invalid id. "})
- }
-console.log("object");
-}
 
+  try {
+    const checkMongoIdValidity = checkMongoId(mongoId);
+    if (!checkMongoIdValidity) {
+      return res.status(400).json({ message: "Invalid id. " });
+    }
+  } catch (error) {
+    return res.status(400).json({ message: "Invalid id. " });
+  }
+  next();
+};
 
+export const view = async (req, res) => {
+  const id = req.params.id;
+  //check product existence
+  let productData = await Product.find({ _id: id });
+  //hide user id
+  productData[0].userId = undefined;
 
+  //check deleted product
+  if (productData.isArchived === "true") {
+    return res.status(400).json({ message: "Product not found" });
+  }
 
+  if (!productData) {
+    return res.status(400).json({ message: "Product not found" });
+  }
 
-
-
-
-
-
-
+  return res.status(200).json({ data: productData });
+};
 
 /*
 delete product
@@ -223,5 +229,3 @@ export const deleteProduct = async (req, res, next) => {
     return res.status(400).json({ message: error.message });
   }
 };
-
-

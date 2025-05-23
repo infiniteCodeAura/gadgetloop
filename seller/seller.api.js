@@ -7,6 +7,7 @@ import {
   validateAddProduct,
   validateEditProduct,
   validateView,
+  view,
   yupAddProductValidate,
   yupEditProduct,
 } from "./product/product.service.js";
@@ -34,7 +35,7 @@ router.put(
 );
 
 //view particular product details 
-router.get("/product/view/:id",isSeller,isOwner,validateView)
+router.get("/product/view/:id",isSeller,isOwner,validateView,view)
 
 //delete product
 router.put("/product/delete/:id", isSeller, isOwner, deleteProduct);
