@@ -48,4 +48,7 @@ router.get("/product/search", isSeller, search);
 //delete product
 router.put("/product/delete/:id", isSeller, isOwner, deleteProduct);
 
+//ordered list view 
+
+
 export default router;

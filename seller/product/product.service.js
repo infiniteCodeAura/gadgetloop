@@ -231,7 +231,7 @@ export const search = async (req, res) => {
   try {
     // validation query
 
-   await yup
+    await yup
       .object()
       .shape({
         search: yup.string().trim().max(100).optional(),
@@ -241,7 +241,7 @@ export const search = async (req, res) => {
             // Transform non-numeric strings to NaN so validation fails
             return isNaN(originalValue) ? NaN : Number(originalValue);
           })
-          
+
           .integer()
           .positive()
           .default(1),
@@ -360,3 +360,5 @@ export const deleteProduct = async (req, res, next) => {
     return res.status(400).json({ message: error.message });
   }
 };
+
+
