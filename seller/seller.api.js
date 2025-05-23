@@ -6,12 +6,11 @@ import {
   editProductData,
   list,
   search,
-  validateAddProduct,
   validateEditProduct,
   validateView,
   view,
   yupAddProductValidate,
-  yupEditProduct,
+  yupEditProduct
 } from "./product/product.service.js";
 import { isOwner } from "./seller.service.js";
 
@@ -21,7 +20,6 @@ const router = express.Router();
 router.post(
   "/product/add",
   isSeller,
-  validateAddProduct,
   yupAddProductValidate,
   addProduct
 );

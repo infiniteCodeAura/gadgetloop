@@ -7,22 +7,7 @@ import { yupProductValidation } from "./product.validation.js";
 add product
 */
 //sanitize user input data
-export const validateAddProduct = async (req, res, next) => {
-  let { productName, description, brand, category, price, quantity } = req.body;
 
-  try {
-    productName = sanitizeData(productName);
-    description = sanitizeData(description);
-    brand = sanitizeData(brand);
-    category = sanitizeData(category);
-    price = sanitizeData(price);
-    quantity = sanitizeData(quantity);
-    //for number validation
-  } catch (error) {
-    return res.status(400).json({ message: "Something went wrong. " });
-  }
-  next();
-};
 // validation using yup
 export const yupAddProductValidate = async (req, res, next) => {
   const data = req.body;
@@ -42,6 +27,13 @@ export const addProduct = async (req, res) => {
     const userId = req.userId;
 
     const data = req.body;
+    data.productName = sanitizeData( data.productName);
+     data.description = sanitizeData( data.description);
+     data.brand = sanitizeData( data.brand);
+     data.category = sanitizeData( data.category);
+     data.price = sanitizeData( data.price);
+     data.quantity = sanitizeData( data.quantity);
+    //for number validation
 
     //check if already exist same product
 
