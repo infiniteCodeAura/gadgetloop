@@ -278,44 +278,7 @@ export const search = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 
-  //  try {
-  //   const searchTerm = req.query.search?.trim() || "";
-  //   const page = parseInt(req.query.page);
-  //   const limit = 20;
-
-  //   // Validate page number
-  //   const currentPage = (page && page > 0) ? page : 1;
-  //   const skip = (currentPage - 1) * limit;
-
-  //   // Build query: if searchTerm empty, match all products
-  //   const query = searchTerm
-  //     ? { productName: { $regex: searchTerm, $options: "i" } }
-  //     : {};
-
-  //   console.log("Search Query:", query);
-  //   console.log("Page:", currentPage, "Skip:", skip, "Limit:", limit);
-
-  //   // Get total matching documents
-  //   const totalItems = await Product.countDocuments(query);
-  //   console.log("Total matching products:", totalItems);
-
-  //   // Fetch paginated results
-  //   const data = await Product.find(query)
-  //     .skip(skip)
-  //     .limit(limit);
-
-  //   console.log("Returned products count:", data.length);
-
-  //   return res.status(200).json({
-  //     page: currentPage,
-  //     totalPages: Math.ceil(totalItems / limit),
-  //     totalItems,
-  //     data,
-  //   });
-  // } catch (error) {
-  //   console.error("Search error:", error);
-  //   res.status(500).json({ message: "Server error" });
-  // }
+  
 };
 
 /*
