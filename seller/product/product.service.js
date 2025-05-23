@@ -159,6 +159,37 @@ export const editProductData = async (req, res, next) => {
 };
 
 /*
+view particular product data
+*/
+export const validateView = async(req,res,next)=>{
+
+  //get id from params 
+  const mongoId = req.params.id;
+  
+ try {
+ const checkMongoIdValidity =  checkMongoId(mongoId)
+ if(!checkMongoIdValidity){
+  return res.status(400).json({message: "Invalid id. "})
+ }
+ } catch (error) {
+ 
+  return res.status(400).json({message: "Invalid id. "})
+ }
+console.log("object");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 delete product
 */
 export const deleteProduct = async (req, res, next) => {
