@@ -4,6 +4,8 @@ import {
   addProduct,
   deleteProduct,
   editProductData,
+  list,
+  search,
   validateAddProduct,
   validateEditProduct,
   validateView,
@@ -34,12 +36,16 @@ router.put(
   editProductData
 );
 
-//view particular product details 
-router.get("/product/view/:id",isSeller,isOwner,validateView,view)
+//view particular product details
+router.get("/product/view/:id", isSeller, isOwner, validateView, view);
+
+//view own product list
+router.get("/product/list", isSeller, list);
+
+//for search api
+router.get("/product/search", isSeller, search);
 
 //delete product
 router.put("/product/delete/:id", isSeller, isOwner, deleteProduct);
 
 export default router;
-
-

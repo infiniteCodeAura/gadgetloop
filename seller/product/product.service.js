@@ -1,8 +1,8 @@
+import yup from "yup";
 import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { sanitizeData } from "../../utils/sanitizeData.js";
 import { Product } from "./product.model.js";
 import { yupProductValidation } from "./product.validation.js";
-import yup from "yup";
 /*
 add product
 */
@@ -70,7 +70,7 @@ export const addProduct = async (req, res) => {
 };
 
 /*
-edit product
+edit own product
 */
 
 export const validateEditProduct = async (req, res, next) => {
@@ -159,7 +159,7 @@ export const editProductData = async (req, res, next) => {
 };
 
 /*
-view particular product data
+view particular own product data
 */
 export const validateView = async (req, res, next) => {
   //get id from params
@@ -194,9 +194,140 @@ export const view = async (req, res) => {
 
   return res.status(200).json({ data: productData });
 };
+/*
+view own product list
+*/
+//view product list
+
+export const list = async (req, res, next) => {
+  try {
+    const sellerId = req.userId;
+    const page = parseInt(req.query.page) || 1;
+
+    const limit = 20;
+    const skip = (page - 1) * limit;
+
+    //count and find only products belong to current seller
+    const total = await Product.countDocuments({ userId: sellerId });
+    const products = await Product.find({ userId: sellerId })
+      .skip(skip)
+      .limit(limit);
+
+    return res.status(200).json({
+      page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      data: products,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 /*
-delete product
+search own product
+*/
+export const search = async (req, res) => {
+  try {
+    // validation query
+
+   await yup
+      .object()
+      .shape({
+        search: yup.string().trim().max(100).optional(),
+        page: yup
+          .number()
+          .transform((value, originalValue) => {
+            // Transform non-numeric strings to NaN so validation fails
+            return isNaN(originalValue) ? NaN : Number(originalValue);
+          })
+          
+          .integer()
+          .positive()
+          .default(1),
+      })
+      .validate(req.query);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+  try {
+    const sellerId = req.userId;
+    const page = parseInt(req.query.page);
+    const limit = 20;
+    const skip = (page - 1) * limit;
+
+    const searchTerm = req.query.search || "";
+
+    const query = {
+      userId: sellerId,
+
+      productName: { $regex: searchTerm, $options: "i" },
+    };
+
+    //count total matching products for this seller + search term
+    const total = await Product.countDocuments(query);
+
+    const products = await Product.find(query).skip(skip).limit(limit);
+
+    // console.log(products[0].isArchived);
+    //hide deleted products
+    if (products[0].isArchived == true) {
+      return res.status(404).json({ message: "Product not found. " });
+    }
+
+    return res.status(200).json({
+      page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      data: products,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+
+  //  try {
+  //   const searchTerm = req.query.search?.trim() || "";
+  //   const page = parseInt(req.query.page);
+  //   const limit = 20;
+
+  //   // Validate page number
+  //   const currentPage = (page && page > 0) ? page : 1;
+  //   const skip = (currentPage - 1) * limit;
+
+  //   // Build query: if searchTerm empty, match all products
+  //   const query = searchTerm
+  //     ? { productName: { $regex: searchTerm, $options: "i" } }
+  //     : {};
+
+  //   console.log("Search Query:", query);
+  //   console.log("Page:", currentPage, "Skip:", skip, "Limit:", limit);
+
+  //   // Get total matching documents
+  //   const totalItems = await Product.countDocuments(query);
+  //   console.log("Total matching products:", totalItems);
+
+  //   // Fetch paginated results
+  //   const data = await Product.find(query)
+  //     .skip(skip)
+  //     .limit(limit);
+
+  //   console.log("Returned products count:", data.length);
+
+  //   return res.status(200).json({
+  //     page: currentPage,
+  //     totalPages: Math.ceil(totalItems / limit),
+  //     totalItems,
+  //     data,
+  //   });
+  // } catch (error) {
+  //   console.error("Search error:", error);
+  //   res.status(500).json({ message: "Server error" });
+  // }
+};
+
+/*
+delete own product
 */
 export const deleteProduct = async (req, res, next) => {
   const productId = req.params.id;
