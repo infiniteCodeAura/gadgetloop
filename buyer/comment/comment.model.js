@@ -33,7 +33,7 @@ const commentSchema = new mongoose.Schema(
     },
     replies: [
       {
-        user: {
+        userId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'User',
         },
@@ -41,7 +41,7 @@ const commentSchema = new mongoose.Schema(
             type:String,
             
         },
-        text: {
+        reply: {
           type: String,
           required: true,
         },

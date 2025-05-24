@@ -35,11 +35,11 @@ export const yupValidationComment = async (req, res, next) => {
 };
 
 //add comment function
-export const comment = async (req, res) => {
+export const commentPost = async (req, res) => {
   let data = req.body;
- 
+
   try {
-     let productId = req.params.id;
+    let productId = req.params.id;
 
     //check mongo id
     const checkProductId = await checkMongoId(productId);
@@ -48,7 +48,7 @@ export const comment = async (req, res) => {
       return res.status(400).json({ message: "Invalid product id. " });
     }
     //validate body data
-       productId =  new mongoose.Types.ObjectId(productId);
+    productId = new mongoose.Types.ObjectId(productId);
 
     data.comment = sanitizeData(data.comment);
     data.star = sanitizeData(data.star);
@@ -58,15 +58,78 @@ export const comment = async (req, res) => {
     const firstName = userData.firstName;
     const userId = userData._id;
 
-   
-    const comment = {productId,userId,firstName,...data}
-    //store it in database 
+    const comment = { productId, userId, firstName, ...data };
+    //store it in database
 
-    await Comment.create(comment)
-    return res.status(200).json({message: "Comment posted."})
-
-
+    await Comment.create(comment);
+    return res.status(200).json({ message: "Comment posted." });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
+};
+
+//reply comment by user
+export const replyCommentValidation = async (req, res, next) => {
+  const id = req.params.id;
+  const data = req.body;
+
+  try {
+//check mongo id validity 
+const checkId = await checkMongoId(id);
+if(!checkId){
+  return res.status(400).json({message: "Invalid product id"})
+}
+
+
+    await yup.object({
+
+
+      replyComment: yup
+        .string()
+        .min(3,"Reply comment must be at least 3 characters. ")
+        .required("Comment is required. ")
+        .trim()
+       
+    }) .noUnknown(true, { message: "Unknown field in request" })
+        .strict(true).validate(data)
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+  next();
+};
+
+export const replyComment = async (req, res) => {
+ //sanitize data 
+ let data = req.body;
+ const id = req.params.id
+
+try {
+
+
+   data.replyComment = sanitizeData(data.replyComment);
+
+//get userid 
+const userId  = req.userId 
+const name = req.userData.firstName;
+
+   //collect data who reply in specific comment 
+   const comment = await Comment.findOne({
+    productId: id,
+    userId: req.userId
+   })
+  //  console.log(comment);
+ comment.replies.push({
+  userId : userId,
+  firstName: name,
+  reply: data.replyComment
+})
+   
+await comment.save();
+ return res.status(200).json({message: "Reply sent. "})
+console.log("object");
+} catch (error) {
+  return res.status(400).json({message :error.message});
+}
+
 };

@@ -29,7 +29,8 @@ export const globalRateLimiter = rateLimit({
 app.use(globalRateLimiter)
 
 connectDb()
- 
+
+
 app.use("/api/v1",userRouter)
 app.use("/api/v2",sellerRouter)
 app.use("/api/v3",buyerRouter)

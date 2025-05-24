@@ -1,7 +1,7 @@
 import express from "express";
+import { isBuyer } from "../authentication/user.authentication.js";
 import { address, addressValidation, updateAddress, updateAddressValidation } from "./address/address.service.js";
-import { isBuyer, isUser } from "../authentication/user.authentication.js";
-import { comment, yupValidationComment } from "./comment/comment.services.js";
+import { commentPost, replyComment, replyCommentValidation, yupValidationComment } from "./comment/comment.services.js";
 
 const router = express()
 
@@ -15,9 +15,10 @@ router.post("/buyer/address",isBuyer,addressValidation,address)
 router.put("/buyer/address/update",isBuyer,updateAddressValidation,updateAddress)
 
 //comment api 
-router.post("/product/:id/comment",isBuyer,yupValidationComment,comment)
+router.post("/product/:id/comment",isBuyer,yupValidationComment,commentPost)
 
-
+//reply comment 
+router.post("/product/:id/comment/reply",isBuyer,replyCommentValidation,replyComment)
 
 export default router
 
