@@ -3,6 +3,8 @@ import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { sanitizeData } from "../../utils/sanitizeData.js";
 import { Comment } from "./comment.model.js";
 import mongoose from "mongoose";
+import User from "../../user/user.model.js";
+import { Product } from "../../seller/product/product.model.js";
 
 export const yupValidationComment = async (req, res, next) => {
   // get product id from params
@@ -133,8 +135,27 @@ console.log(data.replyComment);
       reply: data.replyComment,
     });
 
-    await comment.save();
+    // await comment.save();
      res.status(200).json({ message: "Reply sent. " });
+
+    //at first send email to product owner who comment on your product 
+
+    const product = await Product.findOne({_id: id})
+    if(!product || product.isArchived){
+      return res.status(400).json({message: "Product not found. "})
+    }
+    // const productId = product.userId
+    const user = await User.findOne({_id: product.userId})
+    
+    if(!user){
+      return res.status(404).json({message: "Product owner not found. "})
+    }
+    //find owner of product and sent mail 
+    if(product.userId.equals(user._id)){
+      // mail//
+    }
+
+
     console.log("object");
   } catch (error) {
     return res.status(400).json({ message: error.message });
