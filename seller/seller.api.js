@@ -1,5 +1,5 @@
 import express from "express";
-import { isSeller } from "../authentication/user.authentication.js";
+import {  isSeller } from "../authentication/user.authentication.js";
 import {
   addProduct,
   deleteProduct,
@@ -13,6 +13,7 @@ import {
   yupEditProduct
 } from "./product/product.service.js";
 import { isOwner } from "./seller.service.js";
+// import { isOwner } from "./seller.service.js";
 
 const router = express.Router();
 
