@@ -74,62 +74,69 @@ export const replyCommentValidation = async (req, res, next) => {
   const data = req.body;
 
   try {
-//check mongo id validity 
-const checkId = await checkMongoId(id);
-if(!checkId){
-  return res.status(400).json({message: "Invalid product id"})
+    //check mongo id validity
+    const checkId = await checkMongoId(id);
+    if (!checkId) {
+      return res.status(400).json({ message: "Invalid product id" });
+    }
+    if (typeof data.replyComment === 'string') {
+    data.replyComment = data.replyComment.trim();
+} else {
+    return res.status(400).json({ message: "replyComment must be a string" });
 }
 
-
-    await yup.object({
-
-
-      replyComment: yup
-        .string()
-        .min(3,"Reply comment must be at least 3 characters. ")
-        .required("Comment is required. ")
-        .trim()
-       
-    }) .noUnknown(true, { message: "Unknown field in request" })
-        .strict(true).validate(data)
+    await yup
+      .object({
+        replyComment: yup
+          .string()
+          .min(3, "Reply comment must be at least 3 characters. ")
+          .required("Comment is required. ")
+          .trim(),
+      })
+      .noUnknown(true, { message: "Unknown field in request" })
+      .strict(true)
+      .validate(data);
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
-
   next();
 };
 
 export const replyComment = async (req, res) => {
- //sanitize data 
- let data = req.body;
- const id = req.params.id
+  //sanitize data
+  let data = req.body;
+  const id = req.params.id;
 
-try {
-
-
-   data.replyComment = sanitizeData(data.replyComment);
-
-//get userid 
-const userId  = req.userId 
-const name = req.userData.firstName;
-
-   //collect data who reply in specific comment 
-   const comment = await Comment.findOne({
-    productId: id,
-    userId: req.userId
-   })
-  //  console.log(comment);
- comment.replies.push({
-  userId : userId,
-  firstName: name,
-  reply: data.replyComment
-})
-   
-await comment.save();
- return res.status(200).json({message: "Reply sent. "})
-console.log("object");
-} catch (error) {
-  return res.status(400).json({message :error.message});
+  try {
+if (typeof data.replyComment === 'string') {
+    data.replyComment = data.replyComment.trim();
+} else {
+    return res.status(400).json({ message: "replyComment must be a string" });
 }
+console.log(data.replyComment);
 
+    data.replyComment = sanitizeData(data.replyComment);
+
+    //get userid
+    const userId = req.userId;
+    const name = req.userData.firstName;
+
+    //collect data who reply in specific comment
+    const comment = await Comment.findOne({
+      productId: id,
+      userId: req.userId,
+    });
+    //  console.log(comment);
+    comment.replies.push({
+      userId: userId,
+      firstName: name,
+      reply: data.replyComment,
+    });
+
+    await comment.save();
+     res.status(200).json({ message: "Reply sent. " });
+    console.log("object");
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
 };
