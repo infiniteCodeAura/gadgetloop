@@ -5,6 +5,7 @@ import { Comment } from "./comment.model.js";
 import mongoose from "mongoose";
 import User from "../../user/user.model.js";
 import { Product } from "../../seller/product/product.model.js";
+import mailCommentReply from "../../authMailer/notification.mail.js";
 
 export const yupValidationComment = async (req, res, next) => {
   // get product id from params
@@ -63,11 +64,53 @@ export const commentPost = async (req, res) => {
     const comment = { productId, userId, firstName, ...data };
     //store it in database
 
-    await Comment.create(comment);
-    return res.status(200).json({ message: "Comment posted." });
+    // await Comment.create(comment);
+     res.status(200).json({ message: "Comment posted." });
+
+
+     //get product data
+const product = await Product.findOne({_id: productId});
+if(!product) return res.status(404).json({message: "Product not found. "})
+
+
+  //get owner of product data 
+  const productOwner = await User.findOne({_id: product.userId});
+  if(!productOwner) return res.status(404).json({message: "Product owner not found. "})
+//message for comment to mail 
+
+  let message = " has commented on your product. Please check it out."
+
+//block sending email to self 
+if(!product.userId.equals(userId))
+{
+  await mailCommentReply(productOwner.email,req.userData.firstName,message);
+}
+
+
+  //  const product = await Product.findOne({_id: id})
+  //   if(!product || product.isArchived){
+  //     return res.status(400).json({message: "Product not found. "})
+  //   }
+  //   // const productId = product.userId
+  //   const user = await User.findOne({_id: product.userId})
+    
+  //   if(!user){
+  //     return res.status(404).json({message: "Product owner not found. "})
+  //   }
+  //   //find owner of product and sent mail 
+  //   if(product.userId.equals(user._id)){
+  //     // mail//
+  //     console.log(userId);
+  //     return mailCommentReply(user.email,name,id)
+  //   }
+
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
+
+
+
+
 };
 
 //reply comment by user
@@ -115,7 +158,6 @@ if (typeof data.replyComment === 'string') {
 } else {
     return res.status(400).json({ message: "replyComment must be a string" });
 }
-console.log(data.replyComment);
 
     data.replyComment = sanitizeData(data.replyComment);
 
@@ -135,28 +177,19 @@ console.log(data.replyComment);
       reply: data.replyComment,
     });
 
-    // await comment.save();
+    await comment.save();
      res.status(200).json({ message: "Reply sent. " });
 
-    //at first send email to product owner who comment on your product 
+//reply mail who is comment owner 
+ 
+    let message = `replied your to comment! check it out on gadgetloop.com/${id}`
 
-    const product = await Product.findOne({_id: id})
-    if(!product || product.isArchived){
-      return res.status(400).json({message: "Product not found. "})
-    }
-    // const productId = product.userId
-    const user = await User.findOne({_id: product.userId})
-    
-    if(!user){
-      return res.status(404).json({message: "Product owner not found. "})
-    }
-    //find owner of product and sent mail 
-    if(product.userId.equals(user._id)){
-      // mail//
-    }
+    //fetch original commenter 
+    const commentOwner = await User.findOne({_id: comment.userId})
+    if(!commentOwner)return res.status(404).json({message: "Comment owner not found. "})
 
-
-    console.log("object");
+    return  await mailCommentReply(commentOwner.email,commentOwner.firstName,message)
+   
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }

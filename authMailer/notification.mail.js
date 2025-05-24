@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const mailCommentReply = async (email,replierName,url,commentOwner,productOwner) => {
+const mailCommentReply = async (email,replierName,message) => {
   // Configure transporter
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -14,7 +14,7 @@ const mailCommentReply = async (email,replierName,url,commentOwner,productOwner)
     from: "wwwghimiresagar88@gmail.com",
     to: `${email}`,
     subject: `HELLO ${replierName.toUpperCase()}`,
-    text: ` ${replierName} replied to your comment! Check it out on the app. `,
+    text: ` ${replierName} ${message}`,
   };
 
   // Send mail
@@ -27,4 +27,4 @@ const mailCommentReply = async (email,replierName,url,commentOwner,productOwner)
   });
 };
 
-export default mailCode;
+export default mailCommentReply;
