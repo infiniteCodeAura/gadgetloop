@@ -7,7 +7,7 @@ import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { sanitizeData } from "../../utils/sanitizeData.js";
 import { Comment } from "./comment.model.js";
 import validator from "validator";
-const {equals} = validator
+const { equals } = validator;
 
 export const yupValidationComment = async (req, res, next) => {
   // get product id from params
@@ -24,7 +24,6 @@ export const yupValidationComment = async (req, res, next) => {
           .min(3, "Message must be at least 3 characters")
           .max(200, "message must be at most 200 characters. ")
           .required("Comment message is required"),
-      
       })
       .noUnknown(true, { message: "Unknown field in request" })
       .strict(true)
@@ -49,11 +48,11 @@ export const commentPost = async (req, res) => {
       return res.status(400).json({ message: "Invalid product id. " });
     }
     //validate body data
-   const  productId = new mongoose.Types.ObjectId(pId);
-    const findProduct = await Product.findOne({_id: pId})
-if(!findProduct){
-  return res.status(404).json({message: "Product not found. "})
-}
+    const productId = new mongoose.Types.ObjectId(pId);
+    const findProduct = await Product.findOne({ _id: pId });
+    if (!findProduct) {
+      return res.status(404).json({ message: "Product not found. " });
+    }
     data.comment = sanitizeData(data.comment);
     data.star = sanitizeData(data.star);
 
@@ -63,43 +62,38 @@ if(!findProduct){
     const userId = userData._id;
 
     const comment = { productId, userId, firstName, ...data };
-//     const commentData = await Comment.findOne({userId: req.userId})
-// console.log(commentData);
+    //     const commentData = await Comment.findOne({userId: req.userId})
+    // console.log(commentData);
 
     //store it in database
 
     await Comment.create(comment);
-     res.status(200).json({ message: "Comment posted." });
+    res.status(200).json({ message: "Comment posted." });
 
+    //get product data
+    const product = await Product.findOne({ _id: productId });
+    if (!product)
+      return res.status(404).json({ message: "Product not found. " });
 
-     //get product data
-const product = await Product.findOne({_id: productId});
-if(!product) return res.status(404).json({message: "Product not found. "})
+    //get owner of product data
+    const productOwner = await User.findOne({ _id: product.userId });
+    if (!productOwner)
+      return res.status(404).json({ message: "Product owner not found. " });
+    //message for comment to mail
 
+    let message = " has commented on your product. Please check it out.";
 
-  //get owner of product data 
-  const productOwner = await User.findOne({_id: product.userId});
-  if(!productOwner) return res.status(404).json({message: "Product owner not found. "})
-//message for comment to mail 
-
-  let message = " has commented on your product. Please check it out."
-
-//block sending email to self 
-if(!product.userId.equals(userId))
-{
-  await mailCommentReply(productOwner.email,req.userData.firstName,message);
-}
-
-
-
-
+    //block sending email to self
+    if (!product.userId.equals(userId)) {
+      await mailCommentReply(
+        productOwner.email,
+        req.userData.firstName,
+        message
+      );
+    }
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
-
-
-
-
 };
 
 //reply comment by user
@@ -112,11 +106,11 @@ export const replyCommentValidation = async (req, res, next) => {
     if (!checkId) {
       return res.status(400).json({ message: "Invalid product id" });
     }
-    if (typeof data.replyComment === 'string') {
-    data.replyComment = data.replyComment.trim();
-} else {
-    return res.status(400).json({ message: "replyComment must be a string" });
-}
+    if (typeof data.replyComment === "string") {
+      data.replyComment = data.replyComment.trim();
+    } else {
+      return res.status(400).json({ message: "replyComment must be a string" });
+    }
 
     await yup
       .object({
@@ -132,7 +126,7 @@ export const replyCommentValidation = async (req, res, next) => {
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
-  
+
   next();
 };
 
@@ -142,11 +136,11 @@ export const replyComment = async (req, res) => {
   const commentId = req.params.commentId;
 
   try {
-if (typeof data.replyComment === 'string') {
-    data.replyComment = data.replyComment.trim();
-} else {
-    return res.status(400).json({ message: "replyComment must be a string" });
-}
+    if (typeof data.replyComment === "string") {
+      data.replyComment = data.replyComment.trim();
+    } else {
+      return res.status(400).json({ message: "replyComment must be a string" });
+    }
 
     data.replyComment = sanitizeData(data.replyComment);
 
@@ -156,7 +150,8 @@ if (typeof data.replyComment === 'string') {
 
     //collect data who reply in specific comment
     const comment = await Comment.findById(commentId);
-    if(!comment) return res.status(404).json({message: "Comment not found. "})
+    if (!comment)
+      return res.status(404).json({ message: "Comment not found. " });
     //  console.log(comment);
     comment.replies.push({
       userId: userId,
@@ -165,23 +160,26 @@ if (typeof data.replyComment === 'string') {
     });
 
     await comment.save();
-   
-    
 
-//reply mail who is comment owner 
- 
-    let message = `replied your to comment! check it out on gadgetloop.com/${comment.productId}`
+    //reply mail who is comment owner
 
-    //fetch original commenter 
-    const commentOwner = await User.findOne({_id: comment.userId})
-    if(!commentOwner)return res.status(404).json({message: "Comment owner not found. "})
+    let message = `replied your to comment! check it out on gadgetloop.com/${comment.productId}`;
 
-      if(!comment.userId.equals(userId)){
-        //  console.log(userId,comment.replies[0].userId);
-     await mailCommentReply(commentOwner.email,commentOwner.firstName,message)
-     return res.status(200).json({message: "reply sent"})
-      }
-     
+    //fetch original commenter
+    const commentOwner = await User.findOne({ _id: comment.userId });
+    if (!commentOwner)
+      return res.status(404).json({ message: "Comment owner not found. " });
+
+    if (!comment.userId.equals(userId)) {
+      //  console.log(userId,comment.replies[0].userId);
+      await mailCommentReply(
+        commentOwner.email,
+        commentOwner.firstName,
+        message
+      );
+      return res.status(200).json({ message: "reply sent" });
+    }
+
     return res.status(200).json({ message: "Reply sent. " });
   } catch (error) {
     return res.status(400).json({ message: error.message });
