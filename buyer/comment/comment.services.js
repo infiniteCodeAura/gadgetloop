@@ -1,11 +1,13 @@
+import mongoose from "mongoose";
 import yup from "yup";
+import mailCommentReply from "../../authMailer/notification.mail.js";
+import { Product } from "../../seller/product/product.model.js";
+import User from "../../user/user.model.js";
 import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { sanitizeData } from "../../utils/sanitizeData.js";
 import { Comment } from "./comment.model.js";
-import mongoose from "mongoose";
-import User from "../../user/user.model.js";
-import { Product } from "../../seller/product/product.model.js";
-import mailCommentReply from "../../authMailer/notification.mail.js";
+import validator from "validator";
+const {equals} = validator
 
 export const yupValidationComment = async (req, res, next) => {
   // get product id from params
@@ -22,11 +24,7 @@ export const yupValidationComment = async (req, res, next) => {
           .min(3, "Message must be at least 3 characters")
           .max(200, "message must be at most 200 characters. ")
           .required("Comment message is required"),
-        star: yup
-          .number()
-          .required("Star rating is required")
-          .min(1, "Minimum star rating is 1")
-          .max(5, "Maximum star rating is 5"),
+      
       })
       .noUnknown(true, { message: "Unknown field in request" })
       .strict(true)
@@ -42,17 +40,20 @@ export const commentPost = async (req, res) => {
   let data = req.body;
 
   try {
-    let productId = req.params.id;
+    let pId = req.params.id;
 
     //check mongo id
-    const checkProductId = await checkMongoId(productId);
+    const checkProductId = await checkMongoId(pId);
 
     if (!checkProductId) {
       return res.status(400).json({ message: "Invalid product id. " });
     }
     //validate body data
-    productId = new mongoose.Types.ObjectId(productId);
-
+   const  productId = new mongoose.Types.ObjectId(pId);
+    const findProduct = await Product.findOne({_id: pId})
+if(!findProduct){
+  return res.status(404).json({message: "Product not found. "})
+}
     data.comment = sanitizeData(data.comment);
     data.star = sanitizeData(data.star);
 
@@ -62,9 +63,12 @@ export const commentPost = async (req, res) => {
     const userId = userData._id;
 
     const comment = { productId, userId, firstName, ...data };
+//     const commentData = await Comment.findOne({userId: req.userId})
+// console.log(commentData);
+
     //store it in database
 
-    // await Comment.create(comment);
+    await Comment.create(comment);
      res.status(200).json({ message: "Comment posted." });
 
 
@@ -87,22 +91,7 @@ if(!product.userId.equals(userId))
 }
 
 
-  //  const product = await Product.findOne({_id: id})
-  //   if(!product || product.isArchived){
-  //     return res.status(400).json({message: "Product not found. "})
-  //   }
-  //   // const productId = product.userId
-  //   const user = await User.findOne({_id: product.userId})
-    
-  //   if(!user){
-  //     return res.status(404).json({message: "Product owner not found. "})
-  //   }
-  //   //find owner of product and sent mail 
-  //   if(product.userId.equals(user._id)){
-  //     // mail//
-  //     console.log(userId);
-  //     return mailCommentReply(user.email,name,id)
-  //   }
+
 
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -115,9 +104,8 @@ if(!product.userId.equals(userId))
 
 //reply comment by user
 export const replyCommentValidation = async (req, res, next) => {
-  const id = req.params.id;
+  const id = req.params.commentId;
   const data = req.body;
-
   try {
     //check mongo id validity
     const checkId = await checkMongoId(id);
@@ -144,13 +132,14 @@ export const replyCommentValidation = async (req, res, next) => {
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
+  
   next();
 };
 
 export const replyComment = async (req, res) => {
   //sanitize data
   let data = req.body;
-  const id = req.params.id;
+  const commentId = req.params.commentId;
 
   try {
 if (typeof data.replyComment === 'string') {
@@ -166,10 +155,8 @@ if (typeof data.replyComment === 'string') {
     const name = req.userData.firstName;
 
     //collect data who reply in specific comment
-    const comment = await Comment.findOne({
-      productId: id,
-      userId: req.userId,
-    });
+    const comment = await Comment.findById(commentId);
+    if(!comment) return res.status(404).json({message: "Comment not found. "})
     //  console.log(comment);
     comment.replies.push({
       userId: userId,
@@ -178,19 +165,26 @@ if (typeof data.replyComment === 'string') {
     });
 
     await comment.save();
-     res.status(200).json({ message: "Reply sent. " });
+   
+    
 
 //reply mail who is comment owner 
  
-    let message = `replied your to comment! check it out on gadgetloop.com/${id}`
+    let message = `replied your to comment! check it out on gadgetloop.com/${comment.productId}`
 
     //fetch original commenter 
     const commentOwner = await User.findOne({_id: comment.userId})
     if(!commentOwner)return res.status(404).json({message: "Comment owner not found. "})
 
-    return  await mailCommentReply(commentOwner.email,commentOwner.firstName,message)
-   
+      if(!comment.userId.equals(userId)){
+        //  console.log(userId,comment.replies[0].userId);
+     await mailCommentReply(commentOwner.email,commentOwner.firstName,message)
+     return res.status(200).json({message: "reply sent"})
+      }
+     
+    return res.status(200).json({ message: "Reply sent. " });
   } catch (error) {
     return res.status(400).json({ message: error.message });
+    // console.log(error);
   }
 };

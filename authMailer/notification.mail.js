@@ -13,7 +13,7 @@ const mailCommentReply = async (email,replierName,message) => {
   const mailOptions = {
     from: "wwwghimiresagar88@gmail.com",
     to: `${email}`,
-    subject: `HELLO ${replierName.toUpperCase()}`,
+    subject: `HELLO gadgetloop user`,
     text: ` ${replierName} ${message}`,
   };
 

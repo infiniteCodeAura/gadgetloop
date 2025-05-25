@@ -18,7 +18,7 @@ router.put("/buyer/address/update",isBuyer,updateAddressValidation,updateAddress
 router.post("/product/:id/comment",isBuyer,yupValidationComment,commentPost)
 
 //reply comment 
-router.post("/product/:id/comment/reply",isBuyer,replyCommentValidation,replyComment)
+router.post("/product/comment/:commentId/reply",isBuyer,replyCommentValidation,replyComment)
 
 export default router
 
