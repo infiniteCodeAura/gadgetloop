@@ -218,7 +218,7 @@ export const updateName = async (req, res) => {
 
   const currentDate = moment().format("YYYY-MM-DD HH:mm:ss");
 
-  const diff = moment(currentDate).diff(moment(formatted), "second");
+  const diff = moment(currentDate).diff(moment(formatted), "day");
 
   if (diff <= 15) {
     return res

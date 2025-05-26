@@ -4,7 +4,8 @@ import { connectDb } from "./dbConnect.js";
 import buyerRouter from "./buyer/buyer.api.js";
 import sellerRouter from "./seller/seller.api.js";
 import rateLimit from "express-rate-limit";
-
+import cron from 'node-cron';
+import { cleanupOldCarts } from "./buyer/cart/auto.cart.flush.js";
 const app = express();
 
 app.use(express.json());
@@ -29,6 +30,12 @@ export const globalRateLimiter = rateLimit({
 app.use(globalRateLimiter)
 
 connectDb()
+
+//run daily at midnight 
+cron.schedule("* * * * *", () => {
+  console.log("🕛 Running daily cart cleanup...");
+  cleanupOldCarts()
+});
 
 
 app.use("/api/v1",userRouter)

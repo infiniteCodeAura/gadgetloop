@@ -66,7 +66,7 @@ export const addToCart = async (req, res) => {
       cart.totalQuantity += orderedQuantity;
       cart.totalPrice += orderedQuantity * productPrice.price;
     }
-    // await cart.save();
+    await cart.save();
 
 console.log(cart);
 
