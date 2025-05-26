@@ -2,6 +2,7 @@ import express from "express";
 import { isBuyer } from "../authentication/user.authentication.js";
 import { address, addressValidation, updateAddress, updateAddressValidation } from "./address/address.service.js";
 import { commentPost, replyComment, replyCommentValidation, yupValidationComment } from "./comment/comment.services.js";
+import { addToCart, yupCartDataValidation } from "./cart/cart.service.js";
 
 const router = express()
 
@@ -17,8 +18,12 @@ router.put("/buyer/address/update",isBuyer,updateAddressValidation,updateAddress
 //comment api 
 router.post("/product/:id/comment",isBuyer,yupValidationComment,commentPost)
 
-//reply comment 
+//reply comment api
 router.post("/product/comment/:commentId/reply",isBuyer,replyCommentValidation,replyComment)
+
+//cart api 
+router.post("/product/add/cart/:productId",isBuyer,yupCartDataValidation,addToCart)
+
 
 export default router
 

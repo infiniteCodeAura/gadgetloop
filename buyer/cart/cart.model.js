@@ -12,10 +12,7 @@ const cartItemSchema = new mongoose.Schema(
       default: 1,
       min: 1,
     },
-    priceAtAddedTime: {
-      type: Number,
-      required: true,
-    },
+  
   },
   { _id: false }
 );
