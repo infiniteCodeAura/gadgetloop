@@ -68,7 +68,6 @@ export const addToCart = async (req, res) => {
     }
     await cart.save();
 
-console.log(cart);
 
 
    return res.status(200).json({

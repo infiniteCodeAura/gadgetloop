@@ -32,11 +32,11 @@ app.use(globalRateLimiter)
 connectDb()
 
 //run daily at midnight 
-cron.schedule("* * * * *", () => {
-  console.log("🕛 Running daily cart cleanup...");
-  cleanupOldCarts()
-});
-
+// cron.schedule("* * * * *", () => {
+//   console.log("🕛 Running daily cart cleanup...");
+//   cleanupOldCarts()
+// });
+cleanupOldCarts()
 
 app.use("/api/v1",userRouter)
 app.use("/api/v2",sellerRouter)

@@ -1,34 +1,22 @@
 import dayjs from "dayjs";
+import User from "../../user/user.model.js";
 import { Cart } from "./cart.model.js";
 
-export const cleanupOldCarts = async()=>{
+export const cleanupOldCarts = async () => {
+  //get cart data for auto flush functionality
 
-//get cart data for auto flush functionality 
-const cart = await Cart.find({createdAt})
+  const now = dayjs();
 
-const now = dayjs();
-   const tenDayAgo = now.subtract(10, "day")
-   const fifteenDayAgo = now.subtract(15, "day");
+  try {
+    const users = await User.find();
+    const carts = await Cart.find();
 
-   try {
-    const warningCarts = await Cart.find({
-        createdAt: {
-            $lte:tenDayAgo.toDate(),
-            $gt: fifteenDayAgo.toDate(),
-        }
-    })
-
-    const result = await Cart.deleteMany({
-        createdAt:{
-            $lte: fifteenDayAgo.toDate()
-        }
-    })
+   
 
 
-   } catch (error) {
+
     
-   }
-
-
-}
-
+  } catch (error) {
+    return console.log(error);
+  }
+};
