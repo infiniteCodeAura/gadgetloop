@@ -30,13 +30,12 @@ export const globalRateLimiter = rateLimit({
 app.use(globalRateLimiter)
 
 connectDb()
+//run every midnight
+cron.schedule("0 0 * * *", () => {
+  console.log("🕛 Running daily cart cleanup...");
+  cleanupOldCarts();
+});
 
-//run daily at midnight 
-// cron.schedule("* * * * *", () => {
-//   console.log("🕛 Running daily cart cleanup...");
-//   cleanupOldCarts()
-// });
-cleanupOldCarts()
 
 app.use("/api/v1",userRouter)
 app.use("/api/v2",sellerRouter)

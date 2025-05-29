@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const mailCommentReply = async (email,message) => {
+const mailCartWarning = async (email,message) => {
   // Configure transporter
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -27,4 +27,4 @@ const mailCommentReply = async (email,message) => {
   });
 };
 
-export default mailCommentReply;
+export default mailCartWarning;
