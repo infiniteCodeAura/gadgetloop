@@ -44,7 +44,7 @@ export const cleanupOldCarts = async () => {
       // Send warning email if any items are 10 days old
       if (itemsToWarn.length > 0) {
         const productList = itemsToWarn
-          .map((item) => `- ${item.productName || item.productId}`) // Format product list nicely
+          .map((item) => `${item.productName || item.productId}`) // Format product list nicely
           .join("\n");
 
         const warningMessage = `
@@ -66,7 +66,10 @@ Complete your purchase soon to avoid losing them!
       // Delete expired items and send removal email if any items are 15 days or older
       if (itemsToDelete.length > 0) {
         // Update the cart items in DB with only non-expired items
-        await Cart.updateOne({ _id: cart._id }, { $set: { items: updatedItems } });
+        await Cart.updateOne(
+          { _id: cart._id },
+          { $set: { items: updatedItems } }
+        );
 
         const deletedProductList = itemsToDelete
           .map((item) => `- ${item.productName || item.productId}`)
