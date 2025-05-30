@@ -3,6 +3,8 @@ import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { sanitizeData } from "../../utils/sanitizeData.js";
 import { Cart } from "./cart.model.js";
 import { addItemToCartValidationSchema } from "./cart.validations.js";
+import yup from "yup";
+
 //add to cart validation
 export const yupCartDataValidation = async (req, res, next) => {
   // extract data from params
@@ -39,19 +41,47 @@ export const addToCart = async (req, res) => {
     //get user data from usertoken
     const userId = req.userId;
 
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found. " });
+    }
+
     //use product price fromproduct
     let cart = await Cart.findOne({ userId: userId });
+
+    if (!cart) {
+      cart = new Cart({ userId, items: [], totalQuantity: 0, totalPrice: 0 });
+    }
+
+    //block added cart if cart item more than stock quantity
+
+    const existingItem = cart.items.find((item) =>
+      item.productId.equals(productId)
+    );
+    const totalQuantityToAdd = (existingItem?.quantity || 0) + orderedQuantity;
+
+    if (totalQuantityToAdd > product.quantity) {
+      return res.status(400).json({ message: "Product is out of stock. " });
+    }
+
     //check product and its price
     const productPrice = await Product.findOne({ _id: productId });
     if (!productPrice) {
       return res.status(404).json({ message: "Product not found. " });
     }
-
+    // console.log();
+    //  console.log(productPrice.price);
     if (!cart) {
       cart = new Cart({
         userId,
-        price: productPrice.price,
-        items: [{ productId: productId, quantity: orderedQuantity }],
+
+        items: [
+          {
+            productId: productId,
+            price: productPrice.price,
+            quantity: orderedQuantity,
+          },
+        ],
         totalQuantity: orderedQuantity,
         totalPrice: orderedQuantity * productPrice.price,
       });
@@ -61,8 +91,13 @@ export const addToCart = async (req, res) => {
       );
       if (existingItem) {
         existingItem.quantity += orderedQuantity;
+        existingItem.price = productPrice.price;
       } else {
-        cart.items.push({ productId: productId, quantity: orderedQuantity });
+        cart.items.push({
+          productId: productId,
+          price: productPrice.price,
+          quantity: orderedQuantity,
+        });
       }
       cart.totalQuantity += orderedQuantity;
       cart.totalPrice += orderedQuantity * productPrice.price;
@@ -96,19 +131,40 @@ export const cartList = async (req, res) => {
     //use map for read array items
     const cartItems = cart.items.map((item) => ({
       productId: item.productId,
-      price: cart.price,
+      price: item.price,
       quantity: item.quantity,
-      date: item.createdAt
-
+      date: item.createdAt,
     }));
-    
-return res.status(200).json({ 
-  item: cartItems,
-  totalQuantity: cart.totalQuantity,
-  totalPrice: cart.totalPrice
-})
 
+    return res.status(200).json({
+      item: cartItems,
+      totalQuantity: cart.totalQuantity,
+      totalPrice: cart.totalPrice,
+    });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
+};
+
+//update cart data (quantity )
+
+export const cartUpdateValidation = async (req, res, next) => {
+  const { inc, dec } = req.body;
+
+  try {
+    await yup
+      .object({
+        inc: yup.number().required("Increase value is required. ").optional(),
+        dec: yup.number().required("Decrease value is required. ").optional(),
+      })
+      .validate({ inc, dec });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+  next();
+};
+
+export const cartUpdate = async (req, res) => {
+  let { inc, dec } = req.body;
+  const productId = req.params;
 };
