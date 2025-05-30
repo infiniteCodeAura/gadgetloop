@@ -2,7 +2,7 @@ import express from "express";
 import { isBuyer } from "../authentication/user.authentication.js";
 import { address, addressValidation, updateAddress, updateAddressValidation } from "./address/address.service.js";
 import { commentPost, replyComment, replyCommentValidation, yupValidationComment } from "./comment/comment.services.js";
-import { addToCart, yupCartDataValidation } from "./cart/cart.service.js";
+import { addToCart, cartList, yupCartDataValidation } from "./cart/cart.service.js";
 
 const router = express()
 
@@ -26,7 +26,8 @@ router.post("/product/add/cart/:productId",isBuyer,yupCartDataValidation,addToCa
 
 //cart auto remove functionality 
 
-//cart delete api 
+//cart list api 
+router.get("/user/cart/list",isBuyer,cartList)
 
 export default router
 

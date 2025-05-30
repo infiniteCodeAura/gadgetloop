@@ -3,7 +3,7 @@ import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { sanitizeData } from "../../utils/sanitizeData.js";
 import { Cart } from "./cart.model.js";
 import { addItemToCartValidationSchema } from "./cart.validations.js";
-
+//add to cart validation
 export const yupCartDataValidation = async (req, res, next) => {
   // extract data from params
   const productId = req.params.productId;
@@ -26,7 +26,7 @@ export const yupCartDataValidation = async (req, res, next) => {
 
   next();
 };
-
+//add to cart
 export const addToCart = async (req, res) => {
   //get product data and quantity and validate it
   let productId = req.params.productId;
@@ -50,6 +50,7 @@ export const addToCart = async (req, res) => {
     if (!cart) {
       cart = new Cart({
         userId,
+        price: productPrice.price,
         items: [{ productId: productId, quantity: orderedQuantity }],
         totalQuantity: orderedQuantity,
         totalPrice: orderedQuantity * productPrice.price,
@@ -68,13 +69,45 @@ export const addToCart = async (req, res) => {
     }
     await cart.save();
 
+    return res.status(200).json({
+      message: "Item added to cart.",
+      warning:
+        "Note: All cart item will expire after 15 days if not checked out.",
+      cart,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
 
+//list cart item function
+export const cartList = async (req, res) => {
+  const userId = req.userId;
+  try {
+    let cart = await Cart.findOne({ userId: userId });
+    if (!cart) {
+      return res.status(404).json({ message: "Cart item not found. " });
+    }
 
-   return res.status(200).json({
-  message: "Item added to cart.",
-  warning: "Note: All cart item will expire after 15 days if not checked out.",
-  cart,
-});
+    if (!Array.isArray(cart.items) || cart.items === 0) {
+      return res.status(404).json({ message: "Cart is empty. " });
+    }
+
+    //use map for read array items
+    const cartItems = cart.items.map((item) => ({
+      productId: item.productId,
+      price: cart.price,
+      quantity: item.quantity,
+      date: item.createdAt
+
+    }));
+    
+return res.status(200).json({ 
+  item: cartItems,
+  totalQuantity: cart.totalQuantity,
+  totalPrice: cart.totalPrice
+})
+
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
