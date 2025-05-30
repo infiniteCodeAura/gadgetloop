@@ -24,6 +24,9 @@ router.post("/product/comment/:commentId/reply",isBuyer,replyCommentValidation,r
 //cart api 
 router.post("/product/add/cart/:productId",isBuyer,yupCartDataValidation,addToCart)
 
+//cart auto remove functionality 
+
+//cart delete api 
 
 export default router
 
