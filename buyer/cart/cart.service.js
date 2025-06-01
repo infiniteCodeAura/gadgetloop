@@ -163,92 +163,21 @@ export const cartUpdate = async (req, res) => {
   let { inc, dec } = req.body;
   const productId = req.params.id;
   const userId = req.userId;
-try {
-  //cart validation n sanitize
-inc = sanitizeData(inc);
-dec = sanitizeData(dec);
+  try {
+    //cart validation n sanitize
+    inc = sanitizeData(inc);
+    dec = sanitizeData(dec);
 
-const checkProductId = await checkMongoId(productId);
+    const checkProductId = await checkMongoId(productId);
 
-if ((inc && dec) || (!inc && !dec)) {
-  return res.status(400).json({message: "Invalid operation. Use exactly one of 'inc' or 'dec'."});
-}
-
-
-if(!checkProductId){
-  return res.status(400).json({message: "Invalid Product Id. "})
-}
-
-  //check product existance 
-  const product = await Product.findOne({_id: productId});
-
-if(!product){
-  return res.status(400).json({message: "Product not found. "})
-}
-
-//if found product then check cart db 
+    if(!checkProductId){
+      return res.status(400).json({message: "Invalid product id. "})
+    }
 
 
-const cart = await Cart.findOne({userId: userId})
-// console.log("User Cart:", JSON.stringify(cart, null, 2));
-
-if(!cart){
-  return res.status(404).json({message: "Cart not found. "})
-}
 
 
-const itemIndex = cart.items.findIndex(item =>
-  item.productId.equals(new mongoose.Types.ObjectId(productId))
-);
-
-
-if(itemIndex === -1){
-  return res.status(404).json({message: "Product not in cart. "})
-}
-// console.log(itemIndex);
-const item = cart.items[itemIndex];
-//prevent adding more than 7 product to cart.
-if(inc){
-  if(item.quantity >=7){
-    return res.status(400).json({message : "Maximum 7 items allowed per product. "})
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
   }
-
-
-//prevent adding beyond stock 
-if(item.quantity +1 > product.quantity){
-  return res.status(400).json({message : "Not enough stock available. "})
-
-}
-
-item.quantity+=1;
-
-
-}
-else if(dec){
-  item.quantity -=1;
-
-if(item.quantity <=0){
-  cart.items.splice(itemIndex,1)
-
-
-}
-
-
-}
-else{
-  return res.status(400).json({message : "Invalid operation. use 'inc' or 'dec'. "})
-}
-
-cart.totalQuantity = cart.items.reduce((sum,item)=>sum+item.quantity,0);
-cart.totalPrice = cart.items.reduce((sum,item)=>sum+item.quantity * item.price,0);
-
-await cart.save()
-return res.status(200).json({message: "Cart updated successfully. ",cart})
-
-} catch (error) {
-  return res.status(400).json({message: error.message})
-}
-
-
-
 };
