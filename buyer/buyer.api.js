@@ -30,7 +30,7 @@ router.post("/product/add/cart/:productId",isBuyer,yupCartDataValidation,addToCa
 router.get("/user/cart/list",isBuyer,cartList);
 
 //update cart details 
-router.post("/user/cart/update",isBuyer,cartUpdateValidation,cartUpdate)
+router.post("/user/cart/:id/update",isBuyer,cartUpdateValidation,cartUpdate)
 
 export default router
 
