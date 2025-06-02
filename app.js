@@ -15,7 +15,7 @@ app.use((err, req, res, next) => {
   return res.status(400).json({ message: err });
 });
 
-//limit  for ddos protectation
+//limit  for ddos protectation 
 export const globalRateLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 15 minutes
   max: 400, // Limit each IP to 100 requests per windowMs
