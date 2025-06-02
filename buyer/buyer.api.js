@@ -2,7 +2,7 @@ import express from "express";
 import { isBuyer } from "../authentication/user.authentication.js";
 import { address, addressValidation, updateAddress, updateAddressValidation } from "./address/address.service.js";
 import { commentPost, replyComment, replyCommentValidation, yupValidationComment } from "./comment/comment.services.js";
-import { addToCart, cartList, cartUpdate, cartUpdateValidation, yupCartDataValidation } from "./cart/cart.service.js";
+import { addToCart, cartCount, cartList, cartUpdate, cartUpdateValidation, deleteCart, deleteCartValidation, flushCart, yupCartDataValidation } from "./cart/cart.service.js";
 
 const router = express()
 
@@ -29,8 +29,19 @@ router.post("/product/add/cart/:productId",isBuyer,yupCartDataValidation,addToCa
 //cart list api 
 router.get("/user/cart/list",isBuyer,cartList);
 
+//count item which added in cart
+router.get("/user/cart/item/count",isBuyer,cartCount)
+
+
 //update cart details 
 router.post("/user/cart/:id/update",isBuyer,cartUpdateValidation,cartUpdate)
+
+//delete cart api
+router.post("/product/delete/cart/:id",isBuyer,deleteCartValidation,deleteCart)
+
+//cart flush api 
+router.delete("/user/cart/flush",isBuyer,flushCart)
+
 
 export default router
 

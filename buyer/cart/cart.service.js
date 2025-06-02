@@ -181,57 +181,140 @@ export const cartUpdate = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found. " });
     }
-const cart = await Cart.findOne({userId: userId});
+    let cart = await Cart.findOne({ userId: userId });
 
-if(!cart){
-  return res.status(404).json({message: "Cart not found. "})
-}
-
-    const itemIndex =  cart.items.findIndex((item)=>{
-      return item;
-    })
-
-    if(itemIndex === -1){
-      return res.status(404).json({message: "Product not in cart. "})
+    if (!cart) {
+      cart = new Cart({ userId, items: [], totalQuantity: 0, totalPrice: 0 });
     }
 
-    const item = cart.items[itemIndex]
+    let itemIndex = cart.items.findIndex((item) => {
+      // console.log(item)
+      // return item;
+      return item.productId.toString() === productId;
+    });
 
-    if(inc){
-      
-      //allow 1 product max 7 item in chat 
-if(item.quantity>=6){
-  return res.status(400).json({message: "Maximum 7 items are allowed. "})
-}
-
-//check stock items and block
-if(item.quantity +1 > product.quantity){
-  return res.status(400).json({message: "Not enough stock. "})
-}
-
-item.quantity += 1;
-
-    }else if(dec){
-
-
-      item.quantity -=1;
-
-if(item.quantity <=0){
-  cart.items.splice(itemIndex, 1);
-}
-     
+    if (itemIndex === -1) {
+      return res.status(404).json({ message: "Product not in cart. " });
     }
-    
-    //retotal or calculate totals 
-    cart.totalQuantity = cart.items.reduce((sum,i)=>sum+i.quantity,0);
-    cart.totalPrice = cart.items.reduce((sum,i)=>sum+i.quantity * i.price,0)
 
+    let item = cart.items[itemIndex];
+    // console.log(item)
+    if (inc) {
+      //allow 1 product max 7 item in chat
+      if (item.quantity >= 6) {
+        return res
+          .status(400)
+          .json({ message: "Maximum 7 items are allowed. " });
+      }
 
-//save
-await cart.save();
+      //check stock items and block
+      if (item.quantity + 1 > product.quantity) {
+        return res.status(400).json({ message: "Not enough stock. " });
+      }
 
-return res.status(200).json({message: "Cart update successfully. ",cart})
+      item.quantity += 1;
+    } else if (dec) {
+      item.quantity -= 1;
+
+      if (item.quantity <= 0) {
+        cart.items.splice(itemIndex, 1);
+      }
+    }
+    // console.log(item)
+
+    //retotal or calculate totals
+    cart.totalQuantity = cart.items.reduce((sum, i) => sum + i.quantity, 0);
+    cart.totalPrice = cart.items.reduce(
+      (sum, i) => sum + i.quantity * i.price,
+      0
+    );
+
+    //save
+    await cart.save();
+
+    return res
+      .status(200)
+      .json({ message: "Cart update successfully. ", cart });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
 };
+
+//total cart item count function
+export const cartCount = async (req, res) => {
+  const cartItemCount = await Cart.find({
+    userId: req.userId,
+  }).countDocuments();
+  return res.status(200).json({ message: "Items: ", cartItemCount });
+};
+
+//delete cart validation function
+export const deleteCartValidation = async (req, res, next) => {
+  let productId = req.params.id;
+  try {
+    const id = await checkMongoId(productId);
+    
+  if(!id){
+    return res.status(400).json({message: "Invalid id. "})
+  }
+
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+  next()
+};
+
+export const deleteCart = async(req,res)=>{
+
+  const productId = req.params.id;
+  
+  const userId = req.userId;
+
+try {
+  const cart = await Cart.findOne({userId: userId});
+  if(!cart){
+    return res.status(404).json({message: "Cart not found. "})
+  }
+
+  const itemIndex = cart.items.findIndex((item)=>item.productId.toString() == productId)
+ 
+  if(itemIndex == -1){
+    return res.status(404).json({message: "Product not found in cart. "})
+  }
+
+//remove item from cart 
+cart.items.splice(itemIndex, 1);
+
+//recalculate totals
+
+cart.totalQuantity = cart.items.reduce((sum,item)=>sum+item.quantity,0);
+cart.totalPrice = cart.items.reduce((sum,item)=>sum+item.quantity * item.price,0)
+await cart.save();
+return res.status(200).json({message: "Product removed from cart. "})
+
+} catch (error) {
+  return res.status(400).json({message: error.message})
+}
+
+
+}
+
+//cart flush function 
+export const flushCart = async(req,res)=>{
+
+  const userId = req.userId;
+  
+  try {
+    
+    const cart = await Cart.findOne({userId: userId});
+    
+    await cart.deleteOne(cart);
+    return res.status(200).json({message: "All items are removed from your cart. "})
+
+
+  } catch (error) {
+    return res.status(400).json({message: error.message})
+  }
+
+}
+
