@@ -8,19 +8,22 @@ const router = express()
 
 router.use(express.Router());
 
-
+//add address
 //address api 
 router.post("/buyer/address",isBuyer,addressValidation,address)
 
 //update address api 
 router.put("/buyer/address/update",isBuyer,updateAddressValidation,updateAddress)
 
+//comment
 //comment api 
 router.post("/product/:id/comment",isBuyer,yupValidationComment,commentPost)
 
 //reply comment api
 router.post("/product/comment/:commentId/reply",isBuyer,replyCommentValidation,replyComment)
 
+
+//cart
 //cart api 
 router.post("/product/add/cart/:productId",isBuyer,yupCartDataValidation,addToCart)
 

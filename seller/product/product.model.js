@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema(
 
     description: {
       type: String,
-      maxlength:  [2000, "Description must be at most 15 characters long"],
+      maxlength: [2000, "Description must be at most 15 characters long"],
       trim: true,
       required: true,
     },
@@ -22,10 +22,14 @@ const productSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    priceAtPurchase: {
+      type: Number,
+      required: false,
+    },
     brand: {
       type: String,
       trim: true,
-      maxlength:  15,
+      maxlength: 15,
       required: true,
     },
     quantity: {
@@ -44,7 +48,7 @@ const productSchema = new mongoose.Schema(
 
     images: {
       type: [String],
-      default:[],
+      default: [],
     },
     isArchived: {
       type: Boolean,

@@ -31,10 +31,10 @@ const orderSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ["processing", "shipped", "delivired", "cancelled"],
+      enum: ["processing", "shipped", "delivered", "cancelled"],
       default: "processing",
     },
-    snippingAddress: {
+    shippingAddress: {
       fullName: String,
       phone: String,
       address1: String,
