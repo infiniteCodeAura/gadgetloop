@@ -45,6 +45,10 @@ router.post("/product/delete/cart/:id",isBuyer,deleteCartValidation,deleteCart)
 //cart flush api 
 router.delete("/user/cart/flush",isBuyer,flushCart)
 
+//order api 
+router.post("/order/product/:id",isBuyer)
+
+
 
 export default router
 

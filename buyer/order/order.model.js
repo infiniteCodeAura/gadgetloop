@@ -1,3 +1,4 @@
+import { min } from "moment";
 import mongoose, { mongo } from "mongoose";
 
 const orderSchema = new mongoose.Schema(
@@ -18,7 +19,10 @@ const orderSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
-        price: Number,
+        price: {
+          type: Number,
+          min: 0
+        },
         quantity: {
           type: Number,
           default: 1,
@@ -27,19 +31,37 @@ const orderSchema = new mongoose.Schema(
     ],
     totalAmount: {
       type: Number,
+      min: 0,
+      required: true,
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ["cod", "wallet"],
       required: true,
     },
     paymentStatus: {
       type: String,
-      enum: ["processing", "shipped", "delivered", "cancelled"],
-      default: "processing",
+      enum: ["pending", "paid", "failed"],
+      default: "pending",
     },
+    orderStatus: {
+      type: String,
+      enum: ["processing", "shipped", "delivered", "cancelled"],
+      default: 'processing',
+      required: true,
+    },
+
     shippingAddress: {
       fullName: String,
       phone: String,
       address1: String,
       address2: String,
       gharNumber: String,
+    },
+    statusHistory:{
+      status: String,
+      updatedAt: Date,
     },
     isArchive: {
       type: Boolean,
