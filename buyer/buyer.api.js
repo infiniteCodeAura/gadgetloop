@@ -3,6 +3,7 @@ import { isBuyer } from "../authentication/user.authentication.js";
 import { address, addressValidation, updateAddress, updateAddressValidation } from "./address/address.service.js";
 import { commentPost, replyComment, replyCommentValidation, yupValidationComment } from "./comment/comment.services.js";
 import { addToCart, cartCount, cartList, cartUpdate, cartUpdateValidation, deleteCart, deleteCartValidation, flushCart, yupCartDataValidation } from "./cart/cart.service.js";
+import { orderValidation } from "./order/order.service.js";
 
 const router = express()
 
@@ -46,7 +47,7 @@ router.post("/product/delete/cart/:id",isBuyer,deleteCartValidation,deleteCart)
 router.delete("/user/cart/flush",isBuyer,flushCart)
 
 //order api 
-router.post("/order/product/:id",isBuyer)
+router.post("/order/product/:id",isBuyer,orderValidation)
 
 
 
