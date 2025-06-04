@@ -59,9 +59,20 @@ const orderSchema = new mongoose.Schema(
       address2: String,
       gharNumber: String,
     },
-    statusHistory:{
-      status: String,
-      updatedAt: Date,
+    statusHistory:[
+      {
+        status: {
+          type:String,
+          enum: ['processing','shipped','delivered','cancelled'],
+        },
+        updatedAt :{
+          type: Date,
+          default: Date.now
+        },
+      }
+    ],
+    deliveredAt: {
+      type: Date,
     },
     isArchive: {
       type: Boolean,
