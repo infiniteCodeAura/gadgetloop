@@ -1,4 +1,3 @@
-import { min } from "moment";
 import mongoose, { mongo } from "mongoose";
 
 const orderSchema = new mongoose.Schema(
@@ -38,6 +37,7 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       enum: ["cod", "wallet"],
+      default: "cod",
       required: true,
     },
     paymentStatus: {
