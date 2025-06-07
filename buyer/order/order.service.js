@@ -3,6 +3,7 @@ import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { Product } from "../../seller/product/product.model.js";
 import { Address } from "../address/address.model.js";
 import { Order } from "./order.model.js";
+import { v4 as uuidv4 } from "uuid";
 
 export const orderValidation = async (req, res, next) => {
   const { quantity } = req.body;
@@ -61,9 +62,10 @@ export const orderProduct = async (req, res) => {
 
     const productPrice = product.price;
     const totalAmount = quantity * productPrice;
-
+    let orderId = uuidv4();
     //order data
     const orderData = {
+      orderId,
       userId: userData._id,
       products: [
         {
@@ -103,3 +105,29 @@ export const orderProduct = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+//for payment
+
+export const paymentValidation = async (req, res, next) => {
+  const productId = req.params.id;
+  const quantity = req.body.quantity;
+  try {
+    await yup
+      .object({
+        productId: yup.string().required("Invalid product Id. "),
+        quantity: yup.number().required("Quantity is required to proceed. "),
+      })
+      .validate({ productId, quantity });
+
+    //check mongo validation
+    const checkId = await checkMongoId(productId);
+    if (!checkId) {
+      return res.status(400).json({ message: "Invalid id." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+  next();
+};
+
+

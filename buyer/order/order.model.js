@@ -2,6 +2,10 @@ import mongoose, { mongo } from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
+    orderId :{
+      type: String,
+      required: true
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -52,13 +56,13 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
-    shippingAddress: {
-      fullName: String,
-      phone: String,
-      address1: String,
-      address2: String,
-      gharNumber: String,
-    },
+   shippingAddress: {
+  fullName: { type: String, default: '' },
+  phone: { type: String, default: '' },
+  address1: { type: String, default: '' },
+  address2: { type: String, default: '' },
+  gharNumber: { type: String, default: '' },
+},
     statusHistory:[
       {
         status: {
@@ -71,6 +75,7 @@ const orderSchema = new mongoose.Schema(
         },
       }
     ],
+    
     deliveredAt: {
       type: Date,
     },
