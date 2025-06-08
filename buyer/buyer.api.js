@@ -49,7 +49,7 @@ router.delete("/user/cart/flush",isBuyer,flushCart)
 router.post("/order/product/:id",isBuyer,orderValidation,orderProduct)
 
  //buy product payment
-router.post("/order/product/:id/payment",isBuyer,paymentValidation)
+router.post("/order/product/:id/payment",isBuyer,paymentValidation,orderProduct)
 
 //payment api 
 // router.post("/order/product/:id/payment",isBuyer)
