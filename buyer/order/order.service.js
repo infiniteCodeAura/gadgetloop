@@ -131,15 +131,17 @@ export const paymentValidation = async (req, res, next) => {
 };
 
 const orderPayment = async(req,res)=>{
-const productId = req.params.id
-let quantity = req.body.quantity
+// const productId = req.params.id
+// let quantity = req.body.quantity
 
-//validate mongo id 
-const id = await checkMongoId(productId);
-if(!id){
-  return res.status(400).json({message: "Invalid id "});
+// //validate mongo id 
+// const id = await checkMongoId(productId);
+// if(!id){
+//   return res.status(400).json({message: "Invalid id "});
 
-}
+// }
+
+
 
 
 }
