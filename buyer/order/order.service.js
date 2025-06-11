@@ -4,6 +4,8 @@ import { Product } from "../../seller/product/product.model.js";
 import { Address } from "../address/address.model.js";
 import { Order } from "./order.model.js";
 import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
+import { sanitizeData } from "../../utils/sanitizeData.js";
 
 export const orderValidation = async (req, res, next) => {
   const { quantity } = req.body;
@@ -111,13 +113,15 @@ export const orderProduct = async (req, res) => {
 export const paymentValidation = async (req, res, next) => {
   const productId = req.params.id;
   const quantity = req.body.quantity;
+  const token = req.body.token
   try {
     await yup
       .object({
         productId: yup.string().required("Invalid product Id. "),
         quantity: yup.number().required("Quantity is required to proceed. "),
+        token: yup.string().required("Token is required. ").trim(),
       })
-      .validate({ productId, quantity });
+      .validate({ productId, quantity,token });
 
     //check mongo validation
     const checkId = await checkMongoId(productId);
@@ -125,26 +129,63 @@ export const paymentValidation = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid id." });
     }
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(400).json({ message: error.message });
   }
   next();
 };
 
 export const orderPayment = async(req,res)=>{
 const productId = req.params.id
-let quantity = req.body.quantity
-
+let {quantity,token} = req.body;
 const khaltiSecretKey = process.env.paymentSecretKey;
 
 try {
-  
-  
+
+
+//sanitize data 
+quantity = sanitizeData(quantity);
+token = sanitizeData(token)  
+
+//check product from db 
+const product = await Product.findOne({_id: productId});
+if(!product){
+  return res.status(404).json({message: "Product not found. "})
+}
+
+const totalAmount = product.price * quantity;
+// console.log(totalAmount)
+
+//verify khalti payment 
+const verifyResponse =  await axios.post(
+  'https://khalti.com/api/v2/payment/verify/',
+  {
+    token,
+    amount: totalAmount*100, //rs to paisa 
+  },
+  {
+    headers:{
+      Authorization: `Key ${khaltiSecretKey}`,
+      "Content-Type": "application/json",
+    }
+  }
+)
+
+    return res.status(200).json({
+      message: "Payment verified successfully",
+      data: verifyResponse.data,
+    })
 
 
 
 
 } catch (error) {
-  return res.status(500).json({message: error.message})
+   if (error.response && error.response.data) {
+      return res.status(400).json({
+        message: "Khalti verification failed",
+        error: error.response.data,
+      });
+    }
+  return res.status(500).json({error})
 }
 
 
