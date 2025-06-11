@@ -130,18 +130,22 @@ export const paymentValidation = async (req, res, next) => {
   next();
 };
 
-const orderPayment = async(req,res)=>{
-// const productId = req.params.id
-// let quantity = req.body.quantity
+export const orderPayment = async(req,res)=>{
+const productId = req.params.id
+let quantity = req.body.quantity
 
-// //validate mongo id 
-// const id = await checkMongoId(productId);
-// if(!id){
-//   return res.status(400).json({message: "Invalid id "});
+const khaltiSecretKey = process.env.paymentSecretKey;
 
-// }
+try {
+  
+  
 
 
+
+
+} catch (error) {
+  return res.status(500).json({message: error.message})
+}
 
 
 }
