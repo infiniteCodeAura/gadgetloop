@@ -41,6 +41,18 @@ code:{
     default: "buyer",
     enum: ["seller", "buyer", "invalid role"],
   },
+ isVerified:{
+  type: Boolean,
+  default: false,
+  required:true
+ },
+ verifiedAs:{
+type: String,
+enum: ["basic","plus","pro","ultimate"],
+default: "basic",
+required: true
+
+ },
   device: {
     type: Object,
     required: false,
