@@ -10,7 +10,8 @@ export const reviewValidation = async(req , res ,next )=>{
         return res.status(400).json({message: "Invalid id. "})
     }
 
-    
+    console.log("object")
+
 
 }
 
