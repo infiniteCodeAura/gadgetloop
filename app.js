@@ -5,6 +5,7 @@ import buyerRouter from "./buyer/buyer.api.js";
 import sellerRouter from "./seller/seller.api.js";
 import rateLimit from "express-rate-limit";
 import cron from "node-cron";
+import cors from "cors"
 import { cleanupOldCarts } from "./buyer/cart/auto.cart.flush.js";
 const app = express();
 
@@ -28,7 +29,7 @@ export const globalRateLimiter = rateLimit({
 });
 
 app.use(globalRateLimiter);
-
+app.use(cors())
 connectDb();
 //run every midnight
 cron.schedule("0 0 * * *", () => {

@@ -4,6 +4,7 @@ import { address, addressValidation, updateAddress, updateAddressValidation } fr
 import { commentPost, replyComment, replyCommentValidation, yupValidationComment } from "./comment/comment.services.js";
 import { addToCart, cartCount, cartList, cartUpdate, cartUpdateValidation, deleteCart, deleteCartValidation, flushCart, yupCartDataValidation } from "./cart/cart.service.js";
 import { orderPayment, orderProduct, orderValidation, paymentValidation } from "./order/order.service.js";
+import { isBuy } from "./purchase.auth.js";
 
 const router = express()
 
@@ -53,6 +54,9 @@ router.post("/order/product/:id/payment",isBuyer,paymentValidation,orderPayment)
 
 //payment api 
 // router.post("/order/product/:id/payment",isBuyer)
+
+router.post("/review/product/:id",isBuyer,isBuy)
+
 
 //buy all cart product api 
 

@@ -22,10 +22,7 @@ const productSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    priceAtPurchase: {
-      type: Number,
-      required: false,
-    },
+    
     brand: {
       type: String,
       trim: true,
@@ -50,6 +47,7 @@ const productSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+   
     isArchived: {
       type: Boolean,
       default: false,
