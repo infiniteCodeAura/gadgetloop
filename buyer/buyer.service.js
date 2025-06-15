@@ -3,7 +3,7 @@ import { sanitizeData } from "../utils/sanitizeData.js";
 import { Product } from "../seller/product/product.model.js";
 
 export const searchValidation = async (req, res, next) => {
-  const { name, category } = req.query;
+  const { name, category, page = 1 } = req.query;
 
   try {
     await yup
@@ -22,6 +22,7 @@ export const searchValidation = async (req, res, next) => {
           .max(50, "Category too long")
           .matches(/^[a-z\s]*$/, "Only letters and spaces allowed")
           .nullable(),
+        page: yup.number().min(1).default(1).positive(),
       })
       .noUnknown()
       .validate({ name, category });
@@ -32,7 +33,7 @@ export const searchValidation = async (req, res, next) => {
 };
 
 export const searchProduct = async (req, res) => {
-  let { name, category } = req.query;
+  let { name, category, page = 1 } = req.query;
 
   try {
     // if (!name) {
@@ -42,8 +43,13 @@ export const searchProduct = async (req, res) => {
     //   category = "";
     // }
 
-    name = sanitizeData(name);
-    category = sanitizeData(category);
+    name = sanitizeData(name || "");
+    category = sanitizeData(category || "");
+
+    //convert params to int
+    page = parseInt(page);
+    const limit = 15;
+    const skip = (page - 1) * limit;
 
     //dynamic query
     let query = {};
@@ -55,16 +61,25 @@ export const searchProduct = async (req, res) => {
     if (category?.trim()) {
       query.category = { $regex: category, $options: "i" };
     }
-    
-    const products = await Product.find(query)
 
+    // const products = await Product.find(query)
 
-   
+    const [products, total] = await Promise.all([
+      Product.find(query).skip(skip).limit(limit),
+      Product.countDocuments(query),
+    ]);
+
     if (products.length === 0) {
       return res.status(404).json({ message: "Product not found. " });
     }
 
-    return res.status(200).json({ count: products.length, products });
+    return res.status(200).json({
+      count: products.length,
+      total,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      products,
+    });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
