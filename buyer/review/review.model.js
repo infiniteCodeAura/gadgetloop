@@ -21,6 +21,7 @@ const reviewSchema = new mongoose.Schema(
     feedback: {
       type: String,
       trim: true,
+      maxLength: 1000,
     },
   },
   {

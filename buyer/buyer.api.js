@@ -56,9 +56,9 @@ router.post("/order/product/:id/payment",isBuyer,paymentValidation,orderPayment)
 //payment api 
 // router.post("/order/product/:id/payment",isBuyer)
 
-// router.post("/review/product/:id",isBuyer,isBuy,reviewValidation,postReview)
+router.post("/review/product/:id",isBuyer,isBuy,reviewValidation,postReview)
 
-router.post("/review/product/:id",isBuyer,isBuy,()=>{console.log("hello there")})
+// router.post("/review/product/:id",isBuyer,isBuy,()=>{console.log("hello there")})
 
 
 //buy all cart product api 
