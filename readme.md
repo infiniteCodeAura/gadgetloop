@@ -146,7 +146,7 @@ Custom logic for numbers, email, etc.
 12. Bad Word Filter
 ✔️ Maintained array of banned words (e.g., vulgar/offensive names)
 
-🔽 Reject names containing any banned words (e.g., “di*k”)
+🔽 Reject names containing any banned words (e.g., “mula”)
 
 ✅ Respond: “Name does not meet our privacy policy and community guidelines”
 
