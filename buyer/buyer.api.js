@@ -5,7 +5,7 @@ import { commentPost, replyComment, replyCommentValidation, yupValidationComment
 import { addToCart, cartCount, cartList, cartUpdate, cartUpdateValidation, deleteCart, deleteCartValidation, flushCart, yupCartDataValidation } from "./cart/cart.service.js";
 import { orderPayment, orderProduct, orderValidation, paymentValidation } from "./order/order.service.js";
 import { isBuy } from "./purchase.auth.js";
-import { reviewValidation } from "./review/review.service.js";
+import { postReview, reviewValidation } from "./review/review.service.js";
 
 const router = express()
 
@@ -56,7 +56,9 @@ router.post("/order/product/:id/payment",isBuyer,paymentValidation,orderPayment)
 //payment api 
 // router.post("/order/product/:id/payment",isBuyer)
 
-router.post("/review/product/:id",isBuyer,isBuy,reviewValidation)
+// router.post("/review/product/:id",isBuyer,isBuy,reviewValidation,postReview)
+
+router.post("/review/product/:id",isBuyer,isBuy,()=>{console.log("hello there")})
 
 
 //buy all cart product api 

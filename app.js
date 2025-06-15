@@ -29,7 +29,21 @@ export const globalRateLimiter = rateLimit({
 });
 
 app.use(globalRateLimiter);
-app.use(cors())
+
+const allowedOrigins = [
+  "http://192.168.0.106:9090"
+]
+
+app.use(cors({
+  origin: function(origin,callback){
+    if(!origin || allowedOrigins.includes(origin)){
+      callback(null,true);  //allow request
+    }else{
+      callback(new Error("Not allowed by cors. ")) //reject request
+    }
+  }
+}))
+
 connectDb();
 //run every midnight
 cron.schedule("0 0 * * *", () => {
