@@ -7,10 +7,11 @@ import rateLimit from "express-rate-limit";
 import cron from "node-cron";
 import cors from "cors"
 import { cleanupOldCarts } from "./buyer/cart/auto.cart.flush.js";
+import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(express.json());
-
+app.use(cookieParser())
 app.use((err, req, res, next) => {
   err = err ? err.toString() : "Something went wrong.";
   return res.status(400).json({ message: err });

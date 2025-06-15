@@ -15,7 +15,7 @@ import { yupSignupValidation } from "./user.validation.js";
 import { otpGen } from "../utils/otp.gen.js";
 import mailCode from "../authMailer/forgot.password.js";
 import { emailSanitize, sanitizeData } from "../utils/sanitizeData.js";
-import {rateLimit} from "express-rate-limit"
+import { rateLimit } from "express-rate-limit";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
@@ -43,7 +43,7 @@ export const signupUser = async (req, res) => {
   let userData = req.body;
 
   try {
-    let firstName = sanitizeData(userData.firstName) ;
+    let firstName = sanitizeData(userData.firstName);
     let lastName = sanitizeData(userData.lastName);
     let email = emailSanitize(userData.email);
     let role = sanitizeData(userData.role);
@@ -172,8 +172,15 @@ export const loginUser = async (req, res) => {
     const sanitizedUser = user.toObject();
     delete sanitizedUser.password;
     delete sanitizedUser.device;
-
-    return res.status(200).json({ data: sanitizedUser, token });
+    return res
+      .status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .json({ data: sanitizedUser, token });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Internal server error." });
@@ -482,27 +489,33 @@ export const validateForgotPasswordData = async (req, res, next) => {
     //  mail(otp,user.email,user.firstName)
     await mailCode(otp, user.email, user.firstName);
 
-//store code on database for temporary time 
+    //store code on database for temporary time
 
+    await User.updateOne(
+      { email: email },
+      {
+        $set: {
+          code: otp,
+        },
+      }
+    );
 
+    //delete otp from db
+    setTimeout(async () => {
+      await User.updateOne(
+        { email: email },
+        {
+          $set: {
+            code: null,
+          },
+        }
+      );
+    }, 2 * 60 * 1000);
 
-await User.updateOne({email: email},{$set: {
-  code: otp
-}})
-
-//delete otp from db 
-setTimeout(async()=>{
-  await User.updateOne({email: email},{$set: {
-    code: null
-  }});
-},2*60*1000)
-
-return res.status(200).json({message: "Please check your email for OTP code. "})
-
+    return res
+      .status(200)
+      .json({ message: "Please check your email for OTP code. " });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
 };
-
-
-

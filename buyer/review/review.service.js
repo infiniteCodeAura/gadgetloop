@@ -25,52 +25,54 @@ export const postReview = async (req, res) => {
   const user = await User.findById(userId);
 
   //sanitize data
- try {
-     data.rating = sanitizeData(data.rating);
-  data.feedback = sanitizeData(data.feedback);
+  try {
+    data.rating = sanitizeData(data.rating);
+    data.feedback = sanitizeData(data.feedback);
 
-  let reviewData = { ...data, userId, productId };
-  // console.log(reviewData)
-  //check product is available or not for post review
-  if (!product) {
-    return res
-      .status(404)
-      .json({ message: "Product not found with this id. " });
-  }
+    let reviewData = { ...data, userId, productId };
+    // console.log(reviewData)
+    //check product is available or not for post review
+    if (!product) {
+      return res
+        .status(404)
+        .json({ message: "Product not found with this id. " });
+    }
 
-  let review = await Review.findOne({ userId: userId,productId: productId });
+    let review = await Review.findOne({ userId: userId, productId: productId });
 
-  if(!data.feedback){
-    return res.status(400).json({message: "Feedback is required. "})
-  }
+    if (!data.feedback) {
+      return res.status(400).json({ message: "Feedback is required. " });
+    }
 
-  if(data.rating <1 || data.rating >5){
-    return res.status(400).json({message: "Rating must be between 1 and 5."})
-  }
+    if (data.rating < 1 || data.rating > 5) {
+      return res
+        .status(400)
+        .json({ message: "Rating must be between 1 and 5." });
+    }
 
-  if (data.feedback.length >= 1000) {
-    return res
-      .status(400)
-      .json({
+    if (data.feedback.length >= 1000) {
+      return res.status(400).json({
         message:
           "Feedback is too long. Only 1000 characters are allowed. Please shorten your feedback.",
       });
+    }
+
+    if (!review) {
+      await Review.create(reviewData);
+      return res.status(200).json({ message: "Review updated. " });
+    }
+
+    await Review.updateOne(
+      { userId: userId, productId: productId },
+      {
+        $set: {
+          feedback: data.feedback,
+          rating: data.rating,
+        },
+      }
+    );
+    return res.status(200).json({ message: "Feedback updated." });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
-
-  
-
-  if (!review) {
-    await Review.create(reviewData);
-    return res.status(200).json({ message: "Review updated. " });
-  }
-
-  await Review.updateOne({userId: userId,productId:productId},{$set:{
-    feedback: data.feedback,
-    rating: data.rating
-  }})
-  return res.status(200).json({message: "Feedback updated."})
-
- } catch (error) {
-    return res.status(500).json({message: error.message});
- }
 };
