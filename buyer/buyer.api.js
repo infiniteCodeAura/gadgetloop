@@ -6,7 +6,7 @@ import { addToCart, cartCount, cartList, cartUpdate, cartUpdateValidation, delet
 import { orderPayment, orderProduct, orderValidation, paymentValidation } from "./order/order.service.js";
 import { isBuy } from "./purchase.auth.js";
 import { postReview, reviewValidation } from "./review/review.service.js";
-import { searchValidation } from "./buyer.service.js";
+import { searchProduct, searchValidation } from "./buyer.service.js";
 
 const router = express()
 
@@ -60,7 +60,7 @@ router.post("/order/product/:id/payment",isBuyer,paymentValidation,orderPayment)
 router.post("/review/product/:id",isBuyer,isBuy,reviewValidation,postReview)
 
 //search product through name catagory 
-router.get("/product/search",isBuyer,searchValidation)
+router.get("/product/search",isBuyer,searchValidation,searchProduct)
 
 //buy all cart product api 
 
