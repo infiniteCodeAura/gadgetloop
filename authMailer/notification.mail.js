@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const mailCommentReply = async (email,replierName,message) => {
+const mailCommentReply = async (email, replierName, message) => {
   // Configure transporter
   const transporter = nodemailer.createTransport({
     service: "gmail",

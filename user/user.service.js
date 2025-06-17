@@ -15,7 +15,6 @@ import { yupSignupValidation } from "./user.validation.js";
 import { otpGen } from "../utils/otp.gen.js";
 import mailCode from "../authMailer/forgot.password.js";
 import { emailSanitize, sanitizeData } from "../utils/sanitizeData.js";
-import { rateLimit } from "express-rate-limit";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {

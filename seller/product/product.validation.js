@@ -36,10 +36,8 @@ export const yupProductValidation = yup.object({
     .max(15, "Brand exceed 15 characters!!"),
 
   quantity: yup
-
     .number()
     .required("quantity is required !!")
     .positive("qualtity must be a positive number !! ")
     .typeError("quantity must be a number!!"),
-  image: yup.string(),
 });

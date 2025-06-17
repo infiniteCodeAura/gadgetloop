@@ -20,14 +20,14 @@ export const isBuy = async (req, res, next) => {
       return res.status(404).json({ message: "Order not found. " });
     }
 
-    //product is still available or not check 
+    //product is still available or not check
 
-    let checkProduct = await Product.findOne({_id: productId});
-    if(!checkProduct){
-      return res.status(404).json({message: "Product not found. "})
+    let checkProduct = await Product.findOne({ _id: productId });
+    if (!checkProduct) {
+      return res.status(404).json({ message: "Product not found. " });
     }
-    if(checkProduct.isArchived === true){
-      return res.status(404).json({message: "Product not found. "})
+    if (checkProduct.isArchived === true) {
+      return res.status(404).json({ message: "Product not found. " });
     }
 
     // let orderProductCheck = order.products.findIndex((item) => {
@@ -44,11 +44,9 @@ export const isBuy = async (req, res, next) => {
     }
 
     if (order.orderStatus !== "delivered") {
-      return res
-        .status(400)
-        .json({
-          message: "You can't leave feedback before the product is delivered.",
-        });
+      return res.status(400).json({
+        message: "You can't leave feedback before the product is delivered.",
+      });
     }
 
     next();

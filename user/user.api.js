@@ -47,4 +47,6 @@ router.put("/user/profile/password",loginLimiter, isUser, updatePassword);
 //password forgot api
 router.put("/user/password/forgot", loginLimiter, validateForgotPasswordData);
 
+
+
 export default router;

@@ -1,40 +1,39 @@
 // models/Comment.js
 
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const commentSchema = new mongoose.Schema(
   {
     productId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
+      ref: "Product",
       required: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     firstName: {
-        type:String,
-        required:true,
-        trim:true,
-        ref:"User"
+      type: String,
+      required: true,
+      trim: true,
+      ref: "User",
     },
     comment: {
       type: String,
       required: true,
       trim: true,
     },
-   
+
     replies: [
       {
         userId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
+          ref: "User",
         },
-        firstName:{
-            type:String,
-            
+        firstName: {
+          type: String,
         },
         reply: {
           type: String,
@@ -56,4 +55,4 @@ const commentSchema = new mongoose.Schema(
   }
 );
 
-export const Comment = mongoose.model('comment', commentSchema);
+export const Comment = mongoose.model("comment", commentSchema);

@@ -2,9 +2,9 @@ import mongoose, { mongo } from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
-    orderId :{
+    orderId: {
       type: String,
-      required: true
+      required: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -24,7 +24,7 @@ const orderSchema = new mongoose.Schema(
         },
         price: {
           type: Number,
-          min: 0
+          min: 0,
         },
         quantity: {
           type: Number,
@@ -52,30 +52,30 @@ const orderSchema = new mongoose.Schema(
     orderStatus: {
       type: String,
       enum: ["processing", "shipped", "delivered", "cancelled"],
-      default: 'processing',
+      default: "processing",
       required: true,
     },
 
-   shippingAddress: {
-  fullName: { type: String, default: '' },
-  phone: { type: String, default: '' },
-  address1: { type: String, default: '' },
-  address2: { type: String, default: '' },
-  gharNumber: { type: String, default: '' },
-},
-    statusHistory:[
+    shippingAddress: {
+      fullName: { type: String, default: "" },
+      phone: { type: String, default: "" },
+      address1: { type: String, default: "" },
+      address2: { type: String, default: "" },
+      gharNumber: { type: String, default: "" },
+    },
+    statusHistory: [
       {
         status: {
-          type:String,
-          enum: ['processing','shipped','delivered','cancelled'],
+          type: String,
+          enum: ["processing", "shipped", "delivered", "cancelled"],
         },
-        updatedAt :{
+        updatedAt: {
           type: Date,
-          default: Date.now
+          default: Date.now,
         },
-      }
+      },
     ],
-    
+
     deliveredAt: {
       type: Date,
     },

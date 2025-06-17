@@ -3,6 +3,8 @@ import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { sanitizeData } from "../../utils/sanitizeData.js";
 import { Product } from "./product.model.js";
 import { yupProductValidation } from "./product.validation.js";
+import multer from "multer";
+
 /*
 add product
 */
@@ -11,6 +13,7 @@ add product
 // validation using yup
 export const yupAddProductValidate = async (req, res, next) => {
   const data = req.body;
+
   try {
     await yupProductValidation.validate(data);
   } catch (error) {
@@ -21,19 +24,75 @@ export const yupAddProductValidate = async (req, res, next) => {
 };
 //add product on db
 export const addProduct = async (req, res) => {
+  let images = req.files;
   //get user id who add this product
-
   try {
     const userId = req.userId;
 
     const data = req.body;
-    data.productName = sanitizeData( data.productName);
-     data.description = sanitizeData( data.description);
-     data.brand = sanitizeData( data.brand);
-     data.category = sanitizeData( data.category);
-     data.price = sanitizeData( data.price);
-     data.quantity = sanitizeData( data.quantity);
-    //for number validation
+    data.productName = sanitizeData(data.productName);
+    data.description = sanitizeData(data.description);
+    data.brand = sanitizeData(data.brand);
+    data.category = sanitizeData(data.category);
+    data.price = sanitizeData(data.price);
+    data.quantity = sanitizeData(data.quantity);
+
+    //images validation
+
+    //allow image only filter
+    let imageMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+
+    //filter for image
+
+    const allImagesValid = images.every((file) => {
+      return imageMimeTypes.includes(file.mimetype);
+    });
+
+    //basic user only can upload upto 5mb
+    if (req.userData.verifiedAs === "basic") {
+      const imageSize = images.every((file) => {
+        return file.size <= 5 * 1024 * 1024;
+      });
+
+      if (!allImagesValid) {
+        return res.status(400).json({ message: "Upload image only." });
+      }
+      if (!imageSize) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Only pro upgrade members can upload photos larger than 5MB.",
+          });
+      }
+    }
+
+    //for pro user
+
+    if (req.userData.verifiedAs === "pro") {
+      if (!allImagesValid) {
+        return res.status(400).json({ message: "Upload images only. " });
+      }
+      const proImageSize = images.every((file) => {
+        return file.size <= 20 * 1024 * 1024;
+      });
+
+      if (!proImageSize) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Only ultimate upgrade members can upload photos larger than 20MB.",
+          });
+      }
+    }
+
+    let imageName = images.map((img) => {
+      return img.path;
+    });
+
+    //convert obj to array
+    imageName = Object.values(imageName);
 
     //check if already exist same product
 
@@ -50,9 +109,11 @@ export const addProduct = async (req, res) => {
 
     const addProductData = {
       ...data,
+      images: { ...imageName },
       productName: data.productName.trim().toLowerCase(),
       userId,
     };
+    // console.log(addProductData)
     //store it on database
     await Product.create(addProductData);
     return res.status(200).json({ message: "Product added successfully. " });
@@ -277,8 +338,6 @@ export const search = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
-
-  
 };
 
 /*
@@ -315,5 +374,3 @@ export const deleteProduct = async (req, res, next) => {
     return res.status(400).json({ message: error.message });
   }
 };
-
-

@@ -113,7 +113,7 @@ export const orderProduct = async (req, res) => {
 export const paymentValidation = async (req, res, next) => {
   const productId = req.params.id;
   const quantity = req.body.quantity;
-  const token = req.body.token
+  const token = req.body.token;
   try {
     await yup
       .object({
@@ -121,7 +121,7 @@ export const paymentValidation = async (req, res, next) => {
         quantity: yup.number().required("Quantity is required to proceed. "),
         token: yup.string().required("Token is required. ").trim(),
       })
-      .validate({ productId, quantity,token });
+      .validate({ productId, quantity, token });
 
     //check mongo validation
     const checkId = await checkMongoId(productId);
@@ -134,60 +134,51 @@ export const paymentValidation = async (req, res, next) => {
   next();
 };
 
-export const orderPayment = async(req,res)=>{
-const productId = req.params.id
-let {quantity,token} = req.body;
-const khaltiSecretKey = process.env.paymentSecretKey;
+export const orderPayment = async (req, res) => {
+  const productId = req.params.id;
+  let { quantity, token } = req.body;
+  const khaltiSecretKey = process.env.paymentSecretKey;
 
-try {
+  try {
+    //sanitize data
+    quantity = sanitizeData(quantity);
+    token = sanitizeData(token);
 
-
-//sanitize data 
-quantity = sanitizeData(quantity);
-token = sanitizeData(token)  
-
-//check product from db 
-const product = await Product.findOne({_id: productId});
-if(!product){
-  return res.status(404).json({message: "Product not found. "})
-}
-
-const totalAmount = product.price * quantity;
-// console.log(totalAmount)
-
-//verify khalti payment 
-const verifyResponse =  await axios.post(
-  'https://khalti.com/api/v2/payment/verify/',
-  {
-    token,
-    amount: totalAmount*100, //rs to paisa 
-  },
-  {
-    headers:{
-      Authorization: `Key ${khaltiSecretKey}`,
-      "Content-Type": "application/json",
+    //check product from db
+    const product = await Product.findOne({ _id: productId });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found. " });
     }
-  }
-)
+
+    const totalAmount = product.price * quantity;
+    // console.log(totalAmount)
+
+    //verify khalti payment
+    const verifyResponse = await axios.post(
+      "https://khalti.com/api/v2/payment/verify/",
+      {
+        token,
+        amount: totalAmount * 100, //rs to paisa
+      },
+      {
+        headers: {
+          Authorization: `Key ${khaltiSecretKey}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     return res.status(200).json({
       message: "Payment verified successfully",
       data: verifyResponse.data,
-    })
-
-
-
-
-} catch (error) {
-   if (error.response && error.response.data) {
+    });
+  } catch (error) {
+    if (error.response && error.response.data) {
       return res.status(400).json({
         message: "Khalti verification failed",
         error: error.response.data,
       });
     }
-  return res.status(500).json({error})
-}
-
-
-}
-
+    return res.status(500).json({ error });
+  }
+};

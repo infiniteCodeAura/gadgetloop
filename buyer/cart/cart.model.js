@@ -7,22 +7,18 @@ const cartItemSchema = new mongoose.Schema(
       ref: "product",
       required: true,
     },
-     price:{
+    price: {
       type: Number,
-      required:true,
+      required: true,
     },
     quantity: {
       type: Number,
       default: 1,
       min: 1,
     },
-   
-  
-    
   },
-  
-  { timestamps:true,
-    _id: false }
+
+  { timestamps: true, _id: false }
 );
 
 const cartSchema = new mongoose.Schema(
@@ -33,13 +29,13 @@ const cartSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    
+
     items: [cartItemSchema],
     totalQuantity: {
       type: Number,
       default: 0,
     },
-   
+
     totalPrice: {
       type: Number,
       default: 0,
@@ -50,4 +46,4 @@ const cartSchema = new mongoose.Schema(
   }
 );
 
-export const Cart = mongoose.model("cart",cartSchema)
+export const Cart = mongoose.model("cart", cartSchema);

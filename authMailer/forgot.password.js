@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
- const mailCode = async (otp,email,name) => {
+const mailCode = async (otp, email, name) => {
   // Configure transporter
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -31,4 +31,4 @@ If you did not request a password reset, please ignore this message or secure yo
   });
 };
 
-export default mailCode
+export default mailCode;

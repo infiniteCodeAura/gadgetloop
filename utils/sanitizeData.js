@@ -18,7 +18,7 @@ export const sanitizeData = (input) => {
     allowedAttributes: {},
   });
 
-  return data; 
+  return data;
 };
 
 export const emailSanitize = (input) => {
@@ -47,4 +47,3 @@ export const emailSanitize = (input) => {
 
   return email;
 };
-

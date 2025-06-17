@@ -253,68 +253,67 @@ export const deleteCartValidation = async (req, res, next) => {
   let productId = req.params.id;
   try {
     const id = await checkMongoId(productId);
-    
-  if(!id){
-    return res.status(400).json({message: "Invalid id. "})
-  }
 
+    if (!id) {
+      return res.status(400).json({ message: "Invalid id. " });
+    }
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
-  next()
+  next();
 };
 
-export const deleteCart = async(req,res)=>{
-
+export const deleteCart = async (req, res) => {
   const productId = req.params.id;
-  
-  const userId = req.userId;
-
-try {
-  const cart = await Cart.findOne({userId: userId});
-  if(!cart){
-    return res.status(404).json({message: "Cart not found. "})
-  }
-
-  const itemIndex = cart.items.findIndex((item)=>item.productId.toString() == productId)
- 
-  if(itemIndex == -1){
-    return res.status(404).json({message: "Product not found in cart. "})
-  }
-
-//remove item from cart 
-cart.items.splice(itemIndex, 1);
-
-//recalculate totals
-
-cart.totalQuantity = cart.items.reduce((sum,item)=>sum+item.quantity,0);
-cart.totalPrice = cart.items.reduce((sum,item)=>sum+item.quantity * item.price,0)
-await cart.save();
-return res.status(200).json({message: "Product removed from cart. "})
-
-} catch (error) {
-  return res.status(400).json({message: error.message})
-}
-
-
-}
-
-//cart flush function 
-export const flushCart = async(req,res)=>{
 
   const userId = req.userId;
-  
+
   try {
-    
-    const cart = await Cart.findOne({userId: userId});
-    
-    await cart.deleteOne(cart);
-    return res.status(200).json({message: "All items are removed from your cart. "})
+    const cart = await Cart.findOne({ userId: userId });
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found. " });
+    }
 
+    const itemIndex = cart.items.findIndex(
+      (item) => item.productId.toString() == productId
+    );
 
+    if (itemIndex == -1) {
+      return res.status(404).json({ message: "Product not found in cart. " });
+    }
+
+    //remove item from cart
+    cart.items.splice(itemIndex, 1);
+
+    //recalculate totals
+
+    cart.totalQuantity = cart.items.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+    cart.totalPrice = cart.items.reduce(
+      (sum, item) => sum + item.quantity * item.price,
+      0
+    );
+    await cart.save();
+    return res.status(200).json({ message: "Product removed from cart. " });
   } catch (error) {
-    return res.status(400).json({message: error.message})
+    return res.status(400).json({ message: error.message });
   }
+};
 
-}
+//cart flush function
+export const flushCart = async (req, res) => {
+  const userId = req.userId;
 
+  try {
+    const cart = await Cart.findOne({ userId: userId });
+
+    await cart.deleteOne(cart);
+    return res
+      .status(200)
+      .json({ message: "All items are removed from your cart. " });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};

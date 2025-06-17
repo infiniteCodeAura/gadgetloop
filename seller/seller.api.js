@@ -1,5 +1,5 @@
 import express from "express";
-import {  isSeller } from "../authentication/user.authentication.js";
+import { isSeller } from "../authentication/user.authentication.js";
 import {
   addProduct,
   deleteProduct,
@@ -13,13 +13,21 @@ import {
   yupEditProduct
 } from "./product/product.service.js";
 import { isOwner } from "./seller.service.js";
+import { upload } from "../utils/multer.js";
 // import { isOwner } from "./seller.service.js";
+// const upload = multer({dest: "../upload"})
+
 
 const router = express.Router();
+
+//multer configuration 
+
 
 //add product api
 router.post(
   "/product/add",
+  upload.array("images",5),
+  isSeller,
   isSeller,
   yupAddProductValidate,
   addProduct
@@ -46,6 +54,7 @@ router.get("/product/search", isSeller, search);
 
 //delete product
 router.put("/product/delete/:id", isSeller, isOwner, deleteProduct);
+
 
 //ordered list view 
 

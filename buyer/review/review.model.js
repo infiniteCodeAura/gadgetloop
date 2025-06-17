@@ -1,15 +1,15 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema(
   {
     productId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
+      ref: "Product",
       required: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     rating: {
@@ -32,6 +32,6 @@ const reviewSchema = new mongoose.Schema(
 // Prevent user from reviewing same product multiple times
 // reviewSchema.index({ productId: 1, userId: 1 }, { unique: true });
 
-const Review = mongoose.model('review', reviewSchema);
+const Review = mongoose.model("review", reviewSchema);
 
 export default Review;

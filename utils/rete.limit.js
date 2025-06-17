@@ -6,11 +6,8 @@ export const loginLimiter = rateLimit({
   max: 5, // limit each IP to 1 request per window
   message: {
     status: 429,
-    error: 'Too many login attempts. Please try again after 15 minutes.',
+    error: "Too many login attempts. Please try again after 15 minutes.",
   },
   standardHeaders: true,
   legacyHeaders: false,
-})
-
-
-
+});

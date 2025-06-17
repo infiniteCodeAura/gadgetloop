@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const mailCartWarning = async (email,message) => {
+const mailCartWarning = async (email, message) => {
   // Configure transporter
   const transporter = nodemailer.createTransport({
     service: "gmail",

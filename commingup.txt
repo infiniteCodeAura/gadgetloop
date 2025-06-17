@@ -1,0 +1,25 @@
+all cart product buy 
+product image upload 
+profile view image 
+kyc verification {
+    userside : upload photo and email with email verification
+    admin side : approve;
+
+    
+} 
+
+product :{
+    report product ,
+    like product 
+}
+
+verification badge {
+    basic - plus ==upcomming pro ,ultimate 
+
+}
+
+//advance method 
+graph n chart implement for individual seller only for plus user
+verification or bluetick functionality 
+
+account verification if hacked (if kyc verified)

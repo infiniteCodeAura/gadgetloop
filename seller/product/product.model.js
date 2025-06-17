@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    
+
     brand: {
       type: String,
       trim: true,
@@ -44,10 +44,10 @@ const productSchema = new mongoose.Schema(
     },
 
     images: {
-      type: [String],
+      type: Array,
       default: [],
     },
-   
+
     isArchived: {
       type: Boolean,
       default: false,
