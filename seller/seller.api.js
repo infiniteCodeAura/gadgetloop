@@ -13,7 +13,7 @@ import {
   yupEditProduct
 } from "./product/product.service.js";
 import { isOwner } from "./seller.service.js";
-import { upload } from "../utils/multer.js";
+import { upload, uploadMedia } from "../utils/multer.js";
 // import { isOwner } from "./seller.service.js";
 // const upload = multer({dest: "../upload"})
 
@@ -26,7 +26,8 @@ const router = express.Router();
 //add product api
 router.post(
   "/product/add",
-  upload.array("images",5),
+  // upload.any("images"),
+  uploadMedia,
   isSeller,
   isSeller,
   yupAddProductValidate,

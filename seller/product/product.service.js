@@ -87,12 +87,12 @@ export const addProduct = async (req, res) => {
       }
     }
 
-    let imageName = images.map((img) => {
+    let mediaName = images.map((img) => {
       return img.path;
     });
 
     //convert obj to array
-    imageName = Object.values(imageName);
+    mediaName = Object.values(mediaName);
 
     //check if already exist same product
 
@@ -109,7 +109,7 @@ export const addProduct = async (req, res) => {
 
     const addProductData = {
       ...data,
-      images: { ...imageName },
+      medias: { ...mediaName },
       productName: data.productName.trim().toLowerCase(),
       userId,
     };
