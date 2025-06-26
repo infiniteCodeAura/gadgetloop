@@ -3,7 +3,6 @@ import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { sanitizeData } from "../../utils/sanitizeData.js";
 import { Product } from "./product.model.js";
 import { yupProductValidation } from "./product.validation.js";
-import multer from "multer";
 
 /*
 add product
@@ -25,6 +24,7 @@ export const yupAddProductValidate = async (req, res, next) => {
 //add product on db
 export const addProduct = async (req, res) => {
   let images = req.files;
+  
   //get user id who add this product
   try {
     const userId = req.userId;
@@ -38,7 +38,6 @@ export const addProduct = async (req, res) => {
     data.quantity = sanitizeData(data.quantity);
 
     //images validation
-
     //allow image only filter
     let imageMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 
@@ -102,6 +101,7 @@ export const addProduct = async (req, res) => {
     });
 
     if (product) {
+      
       return res
         .status(400)
         .json({ message: "You already added this product. " });

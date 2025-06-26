@@ -1,5 +1,8 @@
 import express from "express";
 import { isSeller } from "../authentication/user.authentication.js";
+import { uploadMedia } from "../utils/multer.js";
+import { productValidation, uploadVideos, uploadVideoValidation } from "./membership/pro.js";
+import { readVideo } from "./membership/uploadVideo/multer.video.js";
 import {
   addProduct,
   deleteProduct,
@@ -10,18 +13,15 @@ import {
   validateView,
   view,
   yupAddProductValidate,
-  yupEditProduct
+  yupEditProduct,
 } from "./product/product.service.js";
 import { isOwner } from "./seller.service.js";
-import { upload, uploadMedia } from "../utils/multer.js";
 // import { isOwner } from "./seller.service.js";
 // const upload = multer({dest: "../upload"})
 
-
 const router = express.Router();
 
-//multer configuration 
-
+//multer configuration
 
 //add product api
 router.post(
@@ -29,7 +29,7 @@ router.post(
   // upload.any("images"),
   uploadMedia,
   isSeller,
-  isSeller,
+
   yupAddProductValidate,
   addProduct
 );
@@ -56,8 +56,18 @@ router.get("/product/search", isSeller, search);
 //delete product
 router.put("/product/delete/:id", isSeller, isOwner, deleteProduct);
 
+//premium user
 
-//ordered list view 
+router.post(
+  "/upload/product/:id/video",
+  readVideo.any(),
+  isSeller,
+  productValidation,
+  uploadVideoValidation,
+ 
+  uploadVideos
+);
 
+//ordered list view
 
 export default router;

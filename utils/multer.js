@@ -1,9 +1,9 @@
-// middleware/upload.middleware.js
+import fs from "fs";
 import multer from "multer";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./upload/productImage"); // make sure this path exists or create it
+    cb(null, "./upload/productImage");
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
 
 export const upload = multer({ storage, limits: { files: 5 } });
 
-export const uploadMedia = async (req, res, next) => {
+export const uploadMedia = (req, res, next) => {
   upload.any()(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_COUNT") {
@@ -29,10 +29,14 @@ export const uploadMedia = async (req, res, next) => {
     }
 
     if (req.files && req.files.length > 5) {
-      return res.status(400).json({ message: "Maximum 5 files are allowed." });
+      // 🧹 FIX: delete all uploaded files
+      req.files.forEach(file => fs.unlinkSync(file.path));
+
+      return res
+        .status(400)
+        .json({ message: "Maximum 5 files are allowed." });
     }
 
-    //  Move to next only if no response has been sent
     return next();
   });
 };
