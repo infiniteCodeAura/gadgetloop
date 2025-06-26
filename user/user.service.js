@@ -15,6 +15,8 @@ import { yupSignupValidation } from "./user.validation.js";
 import { otpGen } from "../utils/otp.gen.js";
 import mailCode from "../authMailer/forgot.password.js";
 import { emailSanitize, sanitizeData } from "../utils/sanitizeData.js";
+import fs from "fs"
+import { fileURLToPath } from "url";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
@@ -251,58 +253,93 @@ export const updateName = async (req, res) => {
 };
 
 //update profile picture
-export const uploadProfile = async (req, res) => {
-  const file = req.file;
+
+export const validateProfile = async(req,res,next)=>{
 
   try {
-    // Define storage
-    const storage = multer.diskStorage({
-      destination: (req, file, cb) => cb(null, "./upload/profiles"),
-      filename: (req, file, cb) => {
-        const ext = file.mimetype.split("/")[1];
-        const uniqueName = `${Date.now()}-${Math.random()
-          .toString(36)
-          .substr(2, 9)}.${ext}`;
-        cb(null, uniqueName);
-      },
-    });
 
-    // Allow only jpg, jpeg, png
-    const fileFilter = (req, file, cb) => {
-      const allowed = ["image/jpeg", "image/jpg", "image/png"];
-      if (allowed.includes(file.mimetype)) cb(null, true);
-      else cb(new Error("Only jpg, jpeg, png allowed"), false);
-    };
 
-    //function call multer
-    const upload = multer({ storage });
-    //split filename and extention and get extention
-    const filext = file.mimetype.split("/")[1];
-    //extract filename from file
-    const filename = file.filename;
-    //merge filename and extention
-    const name = `${file.filename}.${filext}`;
-    //get the path of the file
-    const dst = path.join(`./upload/profiles/${name}`);
+  let profilePhoto = req.files;
+  const allowFormat = [
+  "image/jpeg",       // .jpg, .jpeg
+  "image/png",        // .png
+  "image/webp",       // .webp
+  "image/gif",        // .gif
+  "image/svg+xml",    // .svg
+  "image/bmp",        // .bmp
+  "image/tiff",       // .tif, .tiff
+  "image/x-icon",     // .ico
+];
+ const maxSize = 30*1024*1024;
+  let photo = profilePhoto.every((file)=> allowFormat.includes(file.mimetype));
 
-    if (!upload) {
-      return res.status(400).json({ message: "File not uploaded." });
-    }
+    let photoSize = profilePhoto.every((file)=> file.size <= maxSize);
 
-    //check profile photo is already exist or not
+   
 
-    const user = await User.findOne({ email: req.userData.email });
+ if(profilePhoto.length >1){
+  return res.status(400).json({message: "Only 1 photo is allowed as a profile picture."})
+ }
 
-    await User.updateMany(
-      {
-        email: req.userData.email,
-      },
-      {
-        $set: {
-          profile: dst,
-        },
-      }
-    );
+
+  if(!photo){
+    return res.status(400).json({message: "Only photos are allowed as a profile picture. "})
+  }
+
+  
+if(!photoSize){
+  return res.status(400).json({message: "The photo is too large. Please upload a smaller image."})
+}
+
+
+
+} catch (error) {
+  return res.status(400).json({message: error.message})
+}
+next();
+}
+
+
+
+
+
+export const uploadProfile = async (req, res) => {
+
+  try {
+
+    const profilePhoto = req.files.find(file => file.fieldname === "profile");
+
+    
+
+      const fileName = Date.now() + "-" + profilePhoto.originalname;
+const folderPath = path.join("upload/profiles");
+
+      const uploadPath = path.join(folderPath,fileName);
+
+      if (!fs.existsSync(folderPath)) {
+  fs.mkdirSync(folderPath, { recursive: true });
+}
+
+
+
+      fs.writeFileSync(uploadPath,profilePhoto.buffer);
+      
+      
+await User.updateOne({email: req.userData.email},{$set:{
+  profile: uploadPath
+}})
+
+
+
+
+
+
+
+
+
+
+
+ 
 
     return res.status(200).json({ message: "profile uploaded successfully." });
   } catch (error) {

@@ -1,5 +1,4 @@
 import express from "express";
-import multer from "multer";
 import { isUser } from "../authentication/user.authentication.js";
 import { loginLimiter } from "../utils/rete.limit.js";
 import {
@@ -11,10 +10,12 @@ import {
   updatePassword,
   uploadProfile,
   validateForgotPasswordData,
+  validateProfile,
   yupNameValidation,
 } from "./user.service.js";
 import { signupUserValidation } from "./user.service.js ";
-const upload = multer({ dest: "./upload/profiles/" });
+import { file } from "../additional/conf_upload/multer.configure.js";
+// const upload = multer({ dest: "./upload/profiles/" });
 
 const router = express.Router();
 
@@ -31,10 +32,17 @@ router.put("/user/profile/name",loginLimiter, isUser, yupNameValidation, updateN
 
 //profile picture upload api
 
+// router.post(
+//   "/user/profile/image",
+//   isUser,
+//   upload.single("profile"),
+//   uploadProfile
+// );
 router.post(
   "/user/profile/image",
+  file.any("profile"),
   isUser,
-  upload.single("profile"),
+  validateProfile,
   uploadProfile
 );
 

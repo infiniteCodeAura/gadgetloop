@@ -6,6 +6,14 @@ import { Product } from "../product/product.model.js";
 
 export const productValidation = async (req, res, next) => {
   //check product id validation
+
+  if (req.userData.verifiedAs === "basic") {
+    return res.status(400).json({
+      message:
+        " Please upgrade your plan to access video upload functionality.",
+    });
+  }
+
   const productId = req.params.id;
 
   try {
@@ -14,14 +22,16 @@ export const productValidation = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid product id." });
     }
 
-    //check product existance in database 
+    //check product existance in database
 
-    const findProduct = await Product.findOne({userId:req.userId,_id:productId})
+    const findProduct = await Product.findOne({
+      userId: req.userId,
+      _id: productId,
+    });
 
-    if(!findProduct){
-      return res.status(404).json({message: "Product not found"})
+    if (!findProduct) {
+      return res.status(404).json({ message: "Product not found" });
     }
-
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -30,13 +40,6 @@ export const productValidation = async (req, res, next) => {
 };
 
 export const uploadVideoValidation = async (req, res, next) => {
-  if (req.userData.verifiedAs === "basic") {
-    return res.status(400).json({
-      message:
-        " Please upgrade your plan to access video upload functionality.",
-    });
-  }
-
   let video = req.files;
   const maxSize = 50 * 1024 * 1024;
   const allowFormat = [
@@ -58,6 +61,11 @@ export const uploadVideoValidation = async (req, res, next) => {
     }
 
     if (req.userData.verifiedAs === "pro") {
+      if (video.length > 1) {
+        return res
+          .status(403)
+          .json({ message: "Only Ultimate users can upload multiple videos." });
+      }
       const size = video.every((file) => file.size <= maxSize);
       if (!size) {
         return res.status(400).json({
@@ -73,33 +81,33 @@ export const uploadVideoValidation = async (req, res, next) => {
 };
 
 export const uploadVideos = async (req, res) => {
-const productId = req.params.id;
+  const productId = req.params.id;
 
   try {
     const files = req.files;
     const videoPaths = [];
-    files.forEach((file)=>{
+    files.forEach((file) => {
       const fileName = Date.now() + "-" + file.originalname;
-      const uploadPath = path.join("upload/productVideo",fileName);
+      const uploadPath = path.join("upload/productVideo", fileName);
 
-      fs.writeFileSync(uploadPath,file.buffer);//save from memory
-videoPaths.push(uploadPath);
-    })
+      fs.writeFileSync(uploadPath, file.buffer); //save from memory
+      videoPaths.push(uploadPath);
+    });
 
-await Product.updateOne({_id: productId,userId:req.userId},{$set:{
-  videos: videoPaths
-}})
+    await Product.updateOne(
+      { _id: productId, userId: req.userId },
+      {
+        $push: {
+          videos: { $each: videoPaths },
+        },
+      }
+    );
 
-return res.status(200).json({message: "Video upload successfully."})
-
-
+    return res.status(200).json({ message: "Video upload successfully." });
   } catch (error) {
-     return res.status(500).json({
+    return res.status(500).json({
       message: "Upload failed.",
       error: error.message,
     });
   }
-
-
-
 };

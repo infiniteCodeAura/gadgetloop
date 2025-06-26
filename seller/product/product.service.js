@@ -3,6 +3,8 @@ import { checkMongoId } from "../../utils/mongo.id.validation.js";
 import { sanitizeData } from "../../utils/sanitizeData.js";
 import { Product } from "./product.model.js";
 import { yupProductValidation } from "./product.validation.js";
+import path from "path";
+import fs from "fs";
 
 /*
 add product
@@ -21,10 +23,50 @@ export const yupAddProductValidate = async (req, res, next) => {
 
   next();
 };
+
+//validation product image
+
+export const productImageValidation = async (req, res, next) => {
+  const image = req.files;
+  const allowFormat = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/svg+xml",
+  ];
+
+  try {
+    const item = image.every((file) => allowFormat.includes(file.mimetype));
+    //only support image file
+    if (!item) {
+      return res.status(400).json({
+        message: "Unsupported image format. Please upload a valid image file.",
+      });
+    }
+
+    //for pro user and ultimate user
+
+    if (req.userData.verifiedAs === "basic") {
+      const maxSize = 10 * 1024 * 1024;
+      const size = image.every((file) => file.size <= maxSize);
+      if (!size) {
+        return res.status(400).json({
+          message:
+            "PPlease upgrade your plan to upload photos larger than 10 MB.",
+        });
+      }
+    }
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+  next();
+};
+
 //add product on db
 export const addProduct = async (req, res) => {
   let images = req.files;
-  
+
   //get user id who add this product
   try {
     const userId = req.userId;
@@ -37,62 +79,6 @@ export const addProduct = async (req, res) => {
     data.price = sanitizeData(data.price);
     data.quantity = sanitizeData(data.quantity);
 
-    //images validation
-    //allow image only filter
-    let imageMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
-
-    //filter for image
-
-    const allImagesValid = images.every((file) => {
-      return imageMimeTypes.includes(file.mimetype);
-    });
-
-    //basic user only can upload upto 5mb
-    if (req.userData.verifiedAs === "basic") {
-      const imageSize = images.every((file) => {
-        return file.size <= 5 * 1024 * 1024;
-      });
-
-      if (!allImagesValid) {
-        return res.status(400).json({ message: "Upload image only." });
-      }
-      if (!imageSize) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Only pro upgrade members can upload photos larger than 5MB.",
-          });
-      }
-    }
-
-    //for pro user
-
-    if (req.userData.verifiedAs === "pro") {
-      if (!allImagesValid) {
-        return res.status(400).json({ message: "Upload images only. " });
-      }
-      const proImageSize = images.every((file) => {
-        return file.size <= 20 * 1024 * 1024;
-      });
-
-      if (!proImageSize) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Only ultimate upgrade members can upload photos larger than 20MB.",
-          });
-      }
-    }
-
-    let mediaName = images.map((img) => {
-      return img.path;
-    });
-
-    //convert obj to array
-    mediaName = Object.values(mediaName);
-
     //check if already exist same product
 
     const product = await Product.findOne({
@@ -101,24 +87,31 @@ export const addProduct = async (req, res) => {
     });
 
     if (product) {
-      
       return res
         .status(400)
         .json({ message: "You already added this product. " });
     }
 
-    const addProductData = {
-      ...data,
-      medias: { ...mediaName },
-      productName: data.productName.trim().toLowerCase(),
-      userId,
-    };
-    // console.log(addProductData)
-    //store it on database
-    await Product.create(addProductData);
+    //image data extract for store in db
+    let medias = [];
+
+    images.forEach((file) => {
+      const fileName = Date.now() + "-" + file.originalname;
+      const uploadPath = path.join("upload/productImage", fileName);
+
+      fs.writeFileSync(uploadPath, file.buffer);
+      medias.push(uploadPath);
+    });
+
+    const addProduct = { ...data, userId, medias };
+
+    await Product.create(addProduct);
+
     return res.status(200).json({ message: "Product added successfully. " });
   } catch (error) {
-    return res.status(400).json({ message: "Something went wrong. " });
+    return res
+      .status(400)
+      .json({ message: "Something went wrong. ", error: error.message });
   }
 };
 

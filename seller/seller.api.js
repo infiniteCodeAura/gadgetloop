@@ -1,6 +1,6 @@
 import express from "express";
+import { file } from "../additional/conf_upload/multer.configure.js";
 import { isSeller } from "../authentication/user.authentication.js";
-import { uploadMedia } from "../utils/multer.js";
 import { productValidation, uploadVideos, uploadVideoValidation } from "./membership/pro.js";
 import { readVideo } from "./membership/uploadVideo/multer.video.js";
 import {
@@ -8,6 +8,7 @@ import {
   deleteProduct,
   editProductData,
   list,
+  productImageValidation,
   search,
   validateEditProduct,
   validateView,
@@ -27,10 +28,10 @@ const router = express.Router();
 router.post(
   "/product/add",
   // upload.any("images"),
-  uploadMedia,
+  file.any(),
   isSeller,
-
   yupAddProductValidate,
+  productImageValidation,
   addProduct
 );
 

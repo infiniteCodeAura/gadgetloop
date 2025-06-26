@@ -47,8 +47,8 @@ const productSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
-    videos:{
-      type: Array
+    videos: {
+      type: Array,
     },
 
     isArchived: {
