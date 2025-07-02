@@ -254,10 +254,18 @@ export const list = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     //count and find only products belong to current seller
-    const total = await Product.countDocuments({ userId: sellerId });
-    const products = await Product.find({ userId: sellerId })
+    const total = await Product.countDocuments({ userId: sellerId, isArchived:false });
+    const products = await Product.find({ userId: sellerId, isArchived:false })
+    
       .skip(skip)
       .limit(limit);
+//hide archive products 
+
+
+   
+
+    // const total = await Product.countDocuments({ userId: sellerId });
+
 
     return res.status(200).json({
       page,

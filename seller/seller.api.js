@@ -28,7 +28,19 @@ const router = express.Router();
 router.post(
   "/product/add",
   // upload.any("images"),
-  file.any(),
+  // file.any(),
+    (req, res, next) => {
+    file.any()(req, res, function (err) {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_COUNT') {
+          return res.status(400).json({ error: 'You can upload a maximum of 4 Photos.' });
+        }
+        return res.status(500).json({ error: 'Upload failed', details: err.message });
+      }
+      next(); // Continue to next middlewares if no error
+    });
+  },
+
   isSeller,
   yupAddProductValidate,
   productImageValidation,
@@ -59,15 +71,39 @@ router.put("/product/delete/:id", isSeller, isOwner, deleteProduct);
 
 //premium user
 
+// router.post(
+//   "/upload/product/:id/video",
+//   readVideo.any(),
+//   isSeller,
+//   productValidation,
+//   uploadVideoValidation,
+ 
+//   uploadVideos
+// );
+
 router.post(
   "/upload/product/:id/video",
-  readVideo.any(),
+
+  // Custom multer middleware with error handling
+  (req, res, next) => {
+    readVideo.any()(req, res, function (err) {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_COUNT') {
+          return res.status(400).json({ error: 'You can upload a maximum of 3 videos.' });
+        }
+        return res.status(500).json({ error: 'Upload failed', details: err.message });
+      }
+      next(); // Continue to next middlewares if no error
+    });
+  },
+
+  
   isSeller,
   productValidation,
   uploadVideoValidation,
- 
   uploadVideos
 );
+
 
 //ordered list view
 

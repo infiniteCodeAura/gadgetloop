@@ -4,4 +4,6 @@ const upload = multer.memoryStorage()
 
 export const file = multer({
     storage: upload,
+        limits:{files:5}
+
 })
