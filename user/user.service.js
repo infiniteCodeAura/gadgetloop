@@ -1,22 +1,20 @@
 import bcrypt from "bcrypt";
 import dayjs from "dayjs";
+import fs from "fs";
 import jwt from "jsonwebtoken";
-import { publicIpv4 } from "public-ip";
-import yup from "yup";
-import validator from "validator";
-import Ip from "./device/device.model.js";
 import moment from "moment";
-import multer from "multer";
 import path from "path";
-import { loginIp } from "./device/device.data.js";
+import { publicIpv4 } from "public-ip";
+import validator from "validator";
+import yup from "yup";
+import mailCode from "../authMailer/forgot.password.js";
 import { mail } from "../authMailer/login.validation.mail.js";
+import { otpGen } from "../utils/otp.gen.js";
+import { emailSanitize, sanitizeData } from "../utils/sanitizeData.js";
+import { loginIp } from "./device/device.data.js";
+import Ip from "./device/device.model.js";
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
-import { otpGen } from "../utils/otp.gen.js";
-import mailCode from "../authMailer/forgot.password.js";
-import { emailSanitize, sanitizeData } from "../utils/sanitizeData.js";
-import fs from "fs"
-import { fileURLToPath } from "url";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
@@ -298,7 +296,6 @@ if(!photoSize){
 }
 next();
 }
-
 
 
 

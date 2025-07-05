@@ -11,7 +11,7 @@ add product
 */
 //sanitize user input data
 
-// validation using yup
+// validation using 
 export const yupAddProductValidate = async (req, res, next) => {
   const data = req.body;
 
@@ -47,12 +47,17 @@ export const productImageValidation = async (req, res, next) => {
     //for pro user and ultimate user
 
     if (req.userData.verifiedAs === "basic") {
+
+      if(image.length >4){
+        return res.status(400).json({message: "To upload more than 4 images, please upgrade your plan. Unlock higher limits and more features!"})
+      }
+
       const maxSize = 10 * 1024 * 1024;
       const size = image.every((file) => file.size <= maxSize);
       if (!size) {
         return res.status(400).json({
           message:
-            "PPlease upgrade your plan to upload photos larger than 10 MB.",
+            "Please upgrade your plan to upload photos larger than 10 MB.",
         });
       }
     }
