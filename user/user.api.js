@@ -4,6 +4,7 @@ import { loginLimiter } from "../utils/rete.limit.js";
 import {
   loginUser,
   loginUserValidation,
+  profile,
   signupUser,
   updateEmail,
   updateName,
@@ -24,6 +25,9 @@ router.post("/user/signup", signupUserValidation, signupUser);
 
 //login api
 router.post("/user/login", loginUserValidation, loginUser);
+
+//profile data 
+router.get("/user/profile",isUser,profile)
 
 //profile edit apis
 

@@ -35,7 +35,7 @@ export const globalRateLimiter = rateLimit({
 
 app.use(globalRateLimiter);
 
-const allowedOrigins = ["http://192.168.0.106:9090"];
+const allowedOrigins = ["http://192.168.0.106:5173"];
 
 app.use(
   cors({
@@ -46,8 +46,20 @@ app.use(
         callback(new Error("Not allowed by cors. ")); //reject request
       }
     },
+    credentials:true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Optional but recommended
+    allowedHeaders :  ["Content-Type", "Authorization"], 
   })
 );
+
+// app.use(
+//   cors({
+//     origin: "*", // 🚨 For development only: allows all origins
+//     credentials: true, // if you're using cookies
+//     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//   })
+// );
 
 connectDb();
 //run every midnight

@@ -171,6 +171,9 @@ export const loginUser = async (req, res) => {
     const sanitizedUser = user.toObject();
     delete sanitizedUser.password;
     delete sanitizedUser.device;
+    user.password = undefined;
+    user._id = undefined;
+    user.device = undefined;
     return res
       .status(200)
       .cookie("token", token, {
@@ -179,14 +182,36 @@ export const loginUser = async (req, res) => {
         sameSite: "Strict",
         maxAge: 24 * 60 * 60 * 1000,
       })
-      .json({ data: sanitizedUser, token });
+      .json({ data: sanitizedUser, });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+//profile
 
-//for updata
+export const profile = (req,res)=>{
+
+try {
+    const user = req.userData
+ 
+if(!user){
+  return res.status(404).json({message: "User not found."})
+}
+const userObj = user.toObject()
+
+delete  userObj._id 
+
+
+
+return res.status(200).json({data: userObj})
+} catch (error) {
+  return res.status(400).json({message: error.message})
+}
+
+}
+
+//for update
 //name validation first name or last name for update
 export const yupNameValidation = async (req, res, next) => {
   let { firstName, lastName } = req.body;

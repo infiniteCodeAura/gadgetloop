@@ -91,6 +91,7 @@ export const isBuyer = async (req, res, next) => {
 
   req.userId = user._id;
   req.userData = user;
+  
 
   next();
 };
