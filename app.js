@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use(express.static("public"))
 
-app.use(cookieParser());
+app.use(cookieParser()); 
 app.use((err, req, res, next) => {
   err = err ? err.toString() : "Something went wrong.";
   return res.status(400).json({ message: err });
