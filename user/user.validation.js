@@ -15,7 +15,6 @@ password: yup
       ),
 
 
-
 role:yup.string().required("User role is required. ").oneOf(["buyer","seller"]) 
 
 })

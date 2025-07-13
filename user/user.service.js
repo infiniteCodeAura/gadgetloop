@@ -87,7 +87,6 @@ export const signupUser = async (req, res) => {
     await User.create({ ...userData, device });
     return res.status(200).json({ message: "Account created." });
   } catch (err) {
-    console.error("Signup error:", err);
     return res.status(500).json({ message: "Internal server error." });
   }
 };
@@ -329,23 +328,47 @@ export const uploadProfile = async (req, res) => {
 
   try {
 
+    
     const profilePhoto = req.files.find(file => file.fieldname === "profile");
 
-    
+    if (!profilePhoto) {
+  return res.status(400).json({ error: "No profile photo uploaded" });
+}
 
-      const fileName = Date.now() + "-" + profilePhoto.originalname;
-const folderPath = path.join("upload/profiles");
+const safeOriginalName = profilePhoto.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '-');    
+
+
+
+const fileName = `${Date.now()}-${safeOriginalName}`;
+
+// const folderPath = path.join("upload/profiles");
+const folderPath = path.resolve('upload/profiles');
+
+console.log(folderPath);
 
       const uploadPath = path.join(folderPath,fileName);
 
-      if (!fs.existsSync(folderPath)) {
-  fs.mkdirSync(folderPath, { recursive: true });
+      console.log(uploadPath);
+//check photo already existance in db 
+
+const findPhoto = await User.findOne({_id: req.userId});
+
+if(findPhoto){
+
+let name = findPhoto.profile.split("/")
+
+console.log(safeOriginalName);
+
 }
 
 
+//if already exist then delete url and file from folder and insert new 
 
-      fs.writeFileSync(uploadPath,profilePhoto.buffer);
-      
+
+
+fs.writeFileSync(uploadPath, profilePhoto.buffer);
+
+console.log('File saved to:', uploadPath);
       
 await User.updateOne({email: req.userData.email},{$set:{
   profile: uploadPath
