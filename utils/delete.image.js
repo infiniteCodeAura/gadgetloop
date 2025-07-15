@@ -1,10 +1,15 @@
 import fs from "fs";
 import path from "path"
+import { fileURLToPath } from "url";
+
+// Recreate __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 //delete function 
- function deleteUploadFile(filename){
-    const filePath = path.join(__dirname,"upload/profiles",filename);
+export function deleteUploadFile(filename){
+    const filePath = path.join(__dirname,"../upload/profiles",filename);
 
 
     fs.unlink(filePath,(err)=>{
@@ -20,4 +25,3 @@ import path from "path"
 
 }
 
-module.exports = {deleteUploadFile}

@@ -15,6 +15,7 @@ import { loginIp } from "./device/device.data.js";
 import Ip from "./device/device.model.js";
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
+import { deleteUploadFile } from "../utils/delete.image.js";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
@@ -181,7 +182,7 @@ export const loginUser = async (req, res) => {
         sameSite: "Strict",
         maxAge: 24 * 60 * 60 * 1000,
       })
-      .json({ data: sanitizedUser, });
+      .json({ data: sanitizedUser });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Internal server error." });
@@ -189,26 +190,22 @@ export const loginUser = async (req, res) => {
 };
 //profile
 
-export const profile = (req,res)=>{
+export const profile = (req, res) => {
+  try {
+    const user = req.userData;
 
-try {
-    const user = req.userData
- 
-if(!user){
-  return res.status(404).json({message: "User not found."})
-}
-const userObj = user.toObject()
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    const userObj = user.toObject();
 
-delete  userObj._id 
+    delete userObj._id;
 
-
-
-return res.status(200).json({data: userObj})
-} catch (error) {
-  return res.status(400).json({message: error.message})
-}
-
-}
+    return res.status(200).json({ data: userObj });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
 
 //for update
 //name validation first name or last name for update
@@ -276,115 +273,101 @@ export const updateName = async (req, res) => {
 
 //update profile picture
 
-export const validateProfile = async(req,res,next)=>{
-
+export const validateProfile = async (req, res, next) => {
   try {
-
-
-  let profilePhoto = req.files;
-  const allowFormat = [
-  "image/jpeg",       // .jpg, .jpeg
-  "image/png",        // .png
-  "image/webp",       // .webp
-  "image/gif",        // .gif
-  "image/svg+xml",    // .svg
-  "image/bmp",        // .bmp
-  "image/tiff",       // .tif, .tiff
-  "image/x-icon",     // .ico
-];
- const maxSize = 30*1024*1024;
-  let photo = profilePhoto.every((file)=> allowFormat.includes(file.mimetype));
-
-    let photoSize = profilePhoto.every((file)=> file.size <= maxSize);
-
-   
-
- if(profilePhoto.length >1){
-  return res.status(400).json({message: "Only 1 photo is allowed as a profile picture."})
- }
-
-
-  if(!photo){
-    return res.status(400).json({message: "Only photos are allowed as a profile picture. "})
-  }
-
-  
-if(!photoSize){
-  return res.status(400).json({message: "The photo is too large. Please upload a smaller image."})
-}
-
-
-
-} catch (error) {
-  return res.status(400).json({message: error.message})
-}
-next();
-}
-
-
-
-
-export const uploadProfile = async (req, res) => {
-
-  try {
-
-    
-    const profilePhoto = req.files.find(file => file.fieldname === "profile");
+    let profilePhoto = req.files;
 
     if (!profilePhoto) {
-  return res.status(400).json({ error: "No profile photo uploaded" });
-}
+      return res.status(400).json({ message: "Please upload photo." });
+    }
 
-const safeOriginalName = profilePhoto.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '-');    
+    const allowFormat = [
+      "image/jpeg", // .jpg, .jpeg
+      "image/png", // .png
+      "image/webp", // .webp
+      "image/gif", // .gif
+      "image/svg+xml", // .svg
+      "image/bmp", // .bmp
+      "image/tiff", // .tif, .tiff
+      "image/x-icon", // .ico
+    ];
+    const maxSize = 30 * 1024 * 1024;
+    let photo = profilePhoto?.every((file) =>
+      allowFormat.includes(file.mimetype)
+    );
+
+    let photoSize = profilePhoto?.every((file) => file.size <= maxSize);
+
+    if (profilePhoto?.length > 1) {
+      return res
+        .status(400)
+        .json({ message: "Only 1 photo is allowed as a profile picture." });
+    }
+
+    if (!photo) {
+      return res
+        .status(400)
+        .json({ message: "Only photos are allowed as a profile picture. " });
+    }
+
+    if (!photoSize) {
+      return res
+        .status(400)
+        .json({
+          message: "The photo is too large. Please upload a smaller image.",
+        });
+    }
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+  next();
+};
+
+export const uploadProfile = async (req, res) => {
+  try {
+    const profilePhoto = req.files.find((file) => file.fieldname === "profile");
+
+    if (!profilePhoto) {
+      return res.status(400).json({ error: "No profile photo uploaded" });
+    }
+    //find already profile exist or not
+    const findPhoto = await User.findOne({ _id: req.userId });
 
 
+    let deleteProfilePhotoName = findPhoto?.profile?.split("/").at(-1);
 
-const fileName = `${Date.now()}-${safeOriginalName}`;
+    //get real file name and extention
 
-// const folderPath = path.join("upload/profiles");
-const folderPath = path.resolve('upload/profiles');
+    // let name = req.file.originalname
+    let uploadProfileExt = profilePhoto.originalname.split(".").at(-1);
 
-console.log(folderPath);
+    const fileName = `${Date.now()}-${findPhoto._id}.${uploadProfileExt}`;
 
-      const uploadPath = path.join(folderPath,fileName);
+    // if already exist photo then delete it from folder and db 
 
-      console.log(uploadPath);
-//check photo already existance in db 
+    if (findPhoto.profile) {
+      deleteUploadFile(deleteProfilePhotoName);
+    }
 
-const findPhoto = await User.findOne({_id: req.userId});
+    // const folderPath = path.join("upload/profiles");
+    const folderPath = path.resolve("upload/profiles");
 
-if(findPhoto){
+    // console.log(folderPath);
 
-let name = findPhoto.profile.split("/")
+    const uploadPath = path.join(folderPath, fileName);
 
-console.log(safeOriginalName);
+    fs.writeFileSync(uploadPath, profilePhoto.buffer);
 
-}
+    console.log("File saved to:", uploadPath);
 
-
-//if already exist then delete url and file from folder and insert new 
-
-
-
-fs.writeFileSync(uploadPath, profilePhoto.buffer);
-
-console.log('File saved to:', uploadPath);
-      
-await User.updateOne({email: req.userData.email},{$set:{
-  profile: uploadPath
-}})
-
-
-
-
-
-
-
-
-
-
-
- 
+    await User.updateOne(
+      { email: req.userData.email },
+      {
+        $set: {
+          profile: uploadPath,
+        },
+      }
+    );
 
     return res.status(200).json({ message: "profile uploaded successfully." });
   } catch (error) {
