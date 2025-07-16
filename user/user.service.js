@@ -341,7 +341,7 @@ export const uploadProfile = async (req, res) => {
     // let name = req.file.originalname
     let uploadProfileExt = profilePhoto.originalname.split(".").at(-1);
 
-    const fileName = `${Date.now()}-${findPhoto._id}.${uploadProfileExt}`;
+    const fileName = `${Date.now()}${findPhoto._id}.${uploadProfileExt}`;
 
     // if already exist photo then delete it from folder and db 
 
@@ -583,3 +583,57 @@ export const validateForgotPasswordData = async (req, res, next) => {
     return res.status(400).json({ message: error.message });
   }
 };
+
+
+//user kyc verification 
+
+export const validateKyc = async(req,res,next)=>{
+
+const data = req.body;
+const image = req.files
+
+ const allowImageFormat = [
+      "image/jpeg", // .jpg, .jpeg
+      "image/png", // .png
+      "image/webp", // .webp
+      "image/gif", // .gif
+      "image/svg+xml", // .svg
+      "image/bmp", // .bmp
+      "image/tiff", // .tif, .tiff
+      "image/x-icon", // .ico
+    ];
+
+
+
+// validate 
+
+try {
+
+  //data validation 
+  
+await yup.object({
+  firstName: yup.string().required("First name is required. ").trim().lowercase(),
+  lastName: yup.string().required("Lastname name is required. ").trim().lowercase(),
+  email: yup.string().email("Please insert valid email.").required("Email is required. ").lowercase(),
+  address: yup.string().required("Address is required.").trim()
+
+}).validate(data);
+
+
+//image validation 
+
+
+
+
+} catch (error) {
+  
+return res.status(400).json({message: error.message, error: error.stack})
+
+}
+
+
+
+
+}
+
+

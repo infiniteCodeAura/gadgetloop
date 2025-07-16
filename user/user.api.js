@@ -11,6 +11,7 @@ import {
   updatePassword,
   uploadProfile,
   validateForgotPasswordData,
+  validateKyc,
   validateProfile,
   yupNameValidation,
 } from "./user.service.js";
@@ -34,14 +35,7 @@ router.get("/user/profile",isUser,profile)
 //first name update api
 router.put("/user/profile/name",loginLimiter, isUser, yupNameValidation, updateName);
 
-//profile picture upload api
 
-// router.post(
-//   "/user/profile/image",
-//   isUser,
-//   upload.single("profile"),
-//   uploadProfile
-// );
 router.post(
   "/user/profile/image",
   file.any("profile"),
@@ -59,6 +53,9 @@ router.put("/user/profile/password",loginLimiter, isUser, updatePassword);
 //password forgot api
 router.put("/user/password/forgot", loginLimiter, validateForgotPasswordData);
 
+
+//kyc verification 
+router.post("/user/kyc/verification",file.any("kyc"),isUser,validateKyc)
 
 
 export default router;
