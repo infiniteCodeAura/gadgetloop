@@ -311,11 +311,9 @@ export const validateProfile = async (req, res, next) => {
     }
 
     if (!photoSize) {
-      return res
-        .status(400)
-        .json({
-          message: "The photo is too large. Please upload a smaller image.",
-        });
+      return res.status(400).json({
+        message: "The photo is too large. Please upload a smaller image.",
+      });
     }
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -333,7 +331,6 @@ export const uploadProfile = async (req, res) => {
     //find already profile exist or not
     const findPhoto = await User.findOne({ _id: req.userId });
 
-
     let deleteProfilePhotoName = findPhoto?.profile?.split("/").at(-1);
 
     //get real file name and extention
@@ -343,7 +340,7 @@ export const uploadProfile = async (req, res) => {
 
     const fileName = `${Date.now()}${findPhoto._id}.${uploadProfileExt}`;
 
-    // if already exist photo then delete it from folder and db 
+    // if already exist photo then delete it from folder and db
 
     if (findPhoto.profile) {
       deleteUploadFile(deleteProfilePhotoName);
@@ -584,56 +581,60 @@ export const validateForgotPasswordData = async (req, res, next) => {
   }
 };
 
+//user kyc verification
 
-//user kyc verification 
+export const validateKyc = async (req, res, next) => {
+  const data = req.body;
+  const image = req.files;
 
-export const validateKyc = async(req,res,next)=>{
+  const allowImageFormat = [
+    "image/jpeg", // .jpg, .jpeg
+    "image/png", // .png
+    "image/webp", // .webp
+    "image/gif", // .gif
+    "image/svg+xml", // .svg
+    "image/bmp", // .bmp
+    "image/tiff", // .tif, .tiff
+    "image/x-icon", // .ico
+  ];
 
-const data = req.body;
-const image = req.files
+  // validate
 
- const allowImageFormat = [
-      "image/jpeg", // .jpg, .jpeg
-      "image/png", // .png
-      "image/webp", // .webp
-      "image/gif", // .gif
-      "image/svg+xml", // .svg
-      "image/bmp", // .bmp
-      "image/tiff", // .tif, .tiff
-      "image/x-icon", // .ico
-    ];
+  try {
+    //data validation
 
+    await yup
+      .object({
+        firstName: yup
+          .string()
+          .required("First name is required. ")
+          .trim()
+          .lowercase(),
+        lastName: yup
+          .string()
+          .required("Lastname name is required. ")
+          .trim()
+          .lowercase(),
+        email: yup
+          .string()
+          .email("Please insert valid email.")
+          .required("Email is required. ")
+          .lowercase(),
+        address: yup.string().required("Address is required.").trim(),
+      })
+      .validate(data);
 
+    //image validation
 
-// validate 
+    //block multiple image of sim owner screenshot 
 
-try {
-
-  //data validation 
-  
-await yup.object({
-  firstName: yup.string().required("First name is required. ").trim().lowercase(),
-  lastName: yup.string().required("Lastname name is required. ").trim().lowercase(),
-  email: yup.string().email("Please insert valid email.").required("Email is required. ").lowercase(),
-  address: yup.string().required("Address is required.").trim()
-
-}).validate(data);
-
-
-//image validation 
-
-
-
-
-} catch (error) {
-  
-return res.status(400).json({message: error.message, error: error.stack})
-
-}
-
-
-
-
-}
+    console.log(image.length);
 
 
+
+
+
+  } catch (error) {
+    return res.status(400).json({ message: error.message, error: error.stack });
+  }
+};
