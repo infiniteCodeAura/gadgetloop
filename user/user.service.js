@@ -16,6 +16,7 @@ import Ip from "./device/device.model.js";
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
 import { deleteUploadFile } from "../utils/delete.image.js";
+import { set } from "mongoose";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
@@ -585,7 +586,7 @@ export const validateForgotPasswordData = async (req, res, next) => {
 
 export const validateKyc = async (req, res, next) => {
   const data = req.body;
-  const image = req.files;
+  const images = req.files;
 
   const allowImageFormat = [
     "image/jpeg", // .jpg, .jpeg
@@ -628,11 +629,26 @@ export const validateKyc = async (req, res, next) => {
 
     //block multiple image of sim owner screenshot 
 
-    console.log(image.length);
+//photo limit 
+if(images.length >2){
+  return res.status(400).json({message: "User can't upload more than 2 photos"})
+}
 
 
+//get image data and validate 
+let fieldNames = images.map(img=>img.fieldname);
+console.log(fieldNames);
+if(!fieldNames[0]){
+return res.status(400).json({message: "Sim ownership proof is required."})
+}
+if(!fieldNames[1])
+{
+  return res.status(400).json({message: "Your pp size photo is required."})
+
+}
 
 
+console.log("object");
 
   } catch (error) {
     return res.status(400).json({ message: error.message, error: error.stack });
