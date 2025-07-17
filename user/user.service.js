@@ -9,14 +9,14 @@ import validator from "validator";
 import yup from "yup";
 import mailCode from "../authMailer/forgot.password.js";
 import { mail } from "../authMailer/login.validation.mail.js";
+import { deleteUploadFile } from "../utils/delete.image.js";
 import { otpGen } from "../utils/otp.gen.js";
 import { emailSanitize, sanitizeData } from "../utils/sanitizeData.js";
 import { loginIp } from "./device/device.data.js";
 import Ip from "./device/device.model.js";
+import Kyc from "./kyc/kyc.model.js";
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
-import { deleteUploadFile } from "../utils/delete.image.js";
-import { set } from "mongoose";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
@@ -339,32 +339,29 @@ export const uploadProfile = async (req, res) => {
     // let name = req.file.originalname
     let uploadProfileExt = profilePhoto.originalname.split(".").at(-1);
 
-    const fileName = `${Date.now()}${findPhoto._id}.${uploadProfileExt}`;
+    const fileName = `${Date.now()}-${findPhoto._id}.${uploadProfileExt}`;
 
     // if already exist photo then delete it from folder and db
 
     if (findPhoto.profile) {
       deleteUploadFile(deleteProfilePhotoName);
     }
+    const uploadPath = path.join("upload/profiles", fileName);
 
-    // const folderPath = path.join("upload/profiles");
-    const folderPath = path.resolve("upload/profiles");
+    const folderPath = path.join("upload", "profiles");
 
-    // console.log(folderPath);
-
-    const uploadPath = path.join(folderPath, fileName);
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
+    }
 
     fs.writeFileSync(uploadPath, profilePhoto.buffer);
 
-    console.log("File saved to:", uploadPath);
+    console.log(uploadPath);
+    //store photo url in db
 
     await User.updateOne(
       { email: req.userData.email },
-      {
-        $set: {
-          profile: uploadPath,
-        },
-      }
+      { $set: { profile: uploadPath } }
     );
 
     return res.status(200).json({ message: "profile uploaded successfully." });
@@ -625,32 +622,121 @@ export const validateKyc = async (req, res, next) => {
       })
       .validate(data);
 
+    //block multiple images
+
+    //photo limit
+    if (images.length > 2) {
+      return res
+        .status(400)
+        .json({ message: "User can't upload more than 2 photos" });
+    }
+
+    //get image data and validate
+    let fieldNames = images.map((img) => img.fieldname);
+    // console.log(fieldNames);
+    if (!fieldNames[0]) {
+      return res
+        .status(400)
+        .json({ message: "Sim ownership proof is required." });
+    }
+    if (!fieldNames[1]) {
+      return res
+        .status(400)
+        .json({ message: "Your pp size photo is required." });
+    }
+
     //image validation
 
-    //block multiple image of sim owner screenshot 
+    const imgFormat = images.every((item) =>
+      allowImageFormat.some((format) => item.mimetype.includes(format))
+    );
 
-//photo limit 
-if(images.length >2){
-  return res.status(400).json({message: "User can't upload more than 2 photos"})
-}
-
-
-//get image data and validate 
-let fieldNames = images.map(img=>img.fieldname);
-console.log(fieldNames);
-if(!fieldNames[0]){
-return res.status(400).json({message: "Sim ownership proof is required."})
-}
-if(!fieldNames[1])
-{
-  return res.status(400).json({message: "Your pp size photo is required."})
-
-}
-
-
-console.log("object");
-
+    if (!imgFormat) {
+      return res.status(400).json({
+        message:
+          "Upload failed: Only image formats like JPG, PNG, JPEG, or WEBP are allowed.",
+      });
+    }
   } catch (error) {
     return res.status(400).json({ message: error.message, error: error.stack });
+  }
+  next();
+};
+
+export const kyc = async (req, res) => {
+  try {
+    let { firstName, lastName, email, address } = req.body;
+
+    firstName = sanitizeData(firstName);
+    lastName = sanitizeData(lastName);
+    email = emailSanitize(email);
+    address = sanitizeData(address);
+
+    let images = req.files;
+
+    //if already verified ? block it
+    const findKyc = await Kyc.findOne({ userId: req.userId });
+
+    if (findKyc) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "KYC already verified. No further submission is allowed at this time.",
+        });
+    }
+
+    // extract image ext
+
+    let ext = images.map((img) =>
+      img.originalname.split(".").at(-1).toLowerCase()
+    );
+
+    // const kycData = [];
+    let fileNames = images.map((img, index) => {
+      let extentions = ext[index];
+      let randomCode = Math.floor(Math.random() * 900000) + 1;
+
+      return `${Date.now()}-${req.userData.firstName}-${
+        req.userData.lastName
+      }-${req.userId}-${randomCode}.${extentions}`;
+    });
+
+    let kyc = [];
+
+    images.forEach((file, index) => {
+      let uploadPath = path.join("upload/kyc", fileNames[index]);
+      let folderPath = path.join("upload", "kyc");
+
+      //check folder-- exist? ok : create
+
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath, { recursive: true });
+      }
+
+      fs.writeFileSync(uploadPath, file.buffer);
+      kyc.push(uploadPath);
+    });
+
+    // const isVerify = await Kyc.findOne({userId: req.userId})
+
+    let data = {
+      userId: req.userId,
+      kycData: [
+        {
+          firstName,
+          lastName,
+          email,
+          address,
+          simOwner: kyc[0],
+          ppImage: kyc[1],
+        },
+      ],
+    };
+    await Kyc.create(data);
+
+    return res.status(200).json({ message: "KYC updated " });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
   }
 };

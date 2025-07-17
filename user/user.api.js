@@ -2,6 +2,7 @@ import express from "express";
 import { isUser } from "../authentication/user.authentication.js";
 import { loginLimiter } from "../utils/rete.limit.js";
 import {
+  kyc,
   loginUser,
   loginUserValidation,
   profile,
@@ -55,7 +56,7 @@ router.put("/user/password/forgot", loginLimiter, validateForgotPasswordData);
 
 
 //kyc verification 
-router.post("/user/kyc/verification",file.any("kyc"),isUser,validateKyc)
+router.post("/user/kyc/verification",file.any("kyc"),isUser,validateKyc,kyc)
 
 
 export default router;
