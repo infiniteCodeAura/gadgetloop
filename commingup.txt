@@ -23,3 +23,72 @@ graph n chart implement for individual seller only for plus user
 verification or bluetick functionality 
 
 account verification if hacked (if kyc verified)
+
+
+admin :
+
+🔑 Admin Role in an eCommerce System
+✅ 1. User Management
+View all users (buyers/sellers)
+
+Block/unblock users
+
+Delete users (if needed)
+
+See KYC status and details
+
+Manually approve/reject KYC
+
+Reset passwords or send reset links
+
+✅ 2. Product Management
+View all products
+
+Approve or reject products (if sellers need approval)
+
+Remove inappropriate/illegal products
+
+See product status (in stock, out of stock, reported)
+
+✅ 3. Order Management
+View all orders (from all users)
+
+Track order status (pending, shipped, delivered, etc.)
+
+Cancel or override orders (in special cases)
+
+Refund management (optional)
+
+✅ 4. KYC Management
+View submitted KYC details/images
+
+Approve or reject KYC
+
+View KYC update dates
+
+Send warning if KYC needs re-verification
+
+✅ 5. Dashboard / Stats (Optional but Powerful)
+Total Users / Sellers / Buyers
+
+Total Revenue / Orders
+
+Products Sold This Month
+
+Most Active Sellers
+
+Daily/Weekly Analytics with charts
+
+✅ 6. Support / Feedback
+View support messages
+
+Reply to user queries
+
+Flag abusive or scammy behavior
+
+✅ 7. Site Settings (Advanced)
+Toggle features (maintenance mode, registration open/close)
+
+Manage roles (promote user to seller/admin)
+
+Set platform commission (e.g., 10% per sale)

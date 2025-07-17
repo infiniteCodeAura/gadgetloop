@@ -8,19 +8,20 @@ import cron from "node-cron";
 import cors from "cors";
 import { cleanupOldCarts } from "./buyer/cart/auto.cart.flush.js";
 import cookieParser from "cookie-parser";
+import admin from "./admin/user/admin.user.api.js";
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static("public")) 
-  
-app.use(cookieParser()); 
+app.use(express.static("public"));
+
+app.use(cookieParser());
 app.use((err, req, res, next) => {
   err = err ? err.toString() : "Something went wrong.";
   return res.status(400).json({ message: err });
 });
- 
+
 //limit  for ddos protectation
 export const globalRateLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 15 minutes
@@ -46,20 +47,13 @@ app.use(
         callback(new Error("Not allowed by cors. ")); //reject request
       }
     },
-    credentials:true,
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Optional but recommended
-    allowedHeaders :  ["Content-Type", "Authorization"], 
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Optional but recommended
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// app.use(
-//   cors({
-//     origin: "*", // 🚨 For development only: allows all origins
-//     credentials: true, // if you're using cookies
-//     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//   })
-// );
+
 
 connectDb();
 //run every midnight
@@ -68,9 +62,14 @@ cron.schedule("0 0 * * *", () => {
   cleanupOldCarts();
 });
 
+//user
 app.use("/api/v1", userRouter);
 app.use("/api/v2", sellerRouter);
 app.use("/api/v3", buyerRouter);
+
+//admin 
+
+app.use("/api/admin/v1",admin)
 
 const port = process.env.port || 8888;
 app.listen(port, () => {

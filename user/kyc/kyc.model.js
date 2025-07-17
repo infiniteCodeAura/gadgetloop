@@ -1,53 +1,51 @@
 import mongoose from "mongoose";
 
-const kycSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    trim: true,
-    required: true,
-  },
+const kycSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      trim: true,
+      required: true,
+    },
 
-kycData:[
-    {
+    kycData: [
+      {
         _id: false,
 
         firstName: {
-            type:String,
-            required: true,
-            trim:true
+          type: String,
+          required: true,
+          trim: true,
         },
-         lastName: {
-            type:String,
-            required: true,
-            trim:true
+        lastName: {
+          type: String,
+          required: true,
+          trim: true,
         },
-         email: {
-            type:String,
-            required: true,
-            trim:true
+        email: {
+          type: String,
+          required: true,
+          trim: true,
         },
         address: {
-            type:String,
-            required:true,
-            trim:true
+          type: String,
+          required: true,
+          trim: true,
         },
-        simOwner:{
-            type:String,
-            required:true,
+        simOwner: {
+          type: String,
+          required: true,
         },
-        ppImage:{
-            type:String,
-            
-        }
+        ppImage: {
+          type: String,
+        },
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
 
-    }
-]
-
-
-
-},{
-    timestamps:true
-});
-
-const Kyc = mongoose.model("kyc",kycSchema)
+const Kyc = mongoose.model("kyc", kycSchema);
 export default Kyc;

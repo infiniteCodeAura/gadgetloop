@@ -678,12 +678,10 @@ export const kyc = async (req, res) => {
     const findKyc = await Kyc.findOne({ userId: req.userId });
 
     if (findKyc) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "KYC already verified. No further submission is allowed at this time.",
-        });
+      return res.status(400).json({
+        message:
+          "KYC already verified. No further submission is allowed at this time.",
+      });
     }
 
     // extract image ext
