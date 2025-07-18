@@ -614,7 +614,6 @@ export const validateKyc = async (req, res, next) => {
           .trim()
           .lowercase(),
         mobileNumber: yup
-
           .string()
           .required("Mobile number is required. ")
           .matches(/^[0-9]+$/, "Mobile number must contain digits only."),
@@ -628,7 +627,7 @@ export const validateKyc = async (req, res, next) => {
       .validate(data);
 
     //block multiple images
-
+console.log(images.length);
     //photo limit
     if (images.length > 2) {
       return res
@@ -649,7 +648,6 @@ export const validateKyc = async (req, res, next) => {
         .status(400)
         .json({ message: "Your pp size photo is required." });
     }
-
     //image validation
 
     const imgFormat = images.every((item) =>
@@ -749,3 +747,6 @@ export const kyc = async (req, res) => {
     return res.status(400).json({ message: error.message });
   }
 };
+
+
+
