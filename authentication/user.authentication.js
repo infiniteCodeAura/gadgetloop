@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../user/user.model.js";
+import Kyc from "../user/kyc/kyc.model.js";
 
 export const isUser = async (req, res, next) => {
   // const userToken = req.headers.authorization;
@@ -144,3 +145,24 @@ export const isSeller = async (req, res, next) => {
 
   next();
 };
+
+
+
+export const isKyc = async(req,res,next)=>{
+
+const userId = req.userId;
+
+try {
+  const findKyc = await Kyc.findOne({userId: userId});
+
+if(!findKyc){
+return res.status(400).json({ message: "Please verify your KYC before uploading products to ensure trust and platform security." });
+}
+
+} catch (error) {
+  return res.status(400).json({message: error.message,stack: error.stack})
+}
+next();
+
+}
+

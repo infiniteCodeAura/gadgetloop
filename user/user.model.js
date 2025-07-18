@@ -12,6 +12,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    mobileNumber: {
+      type: String,
+      required: false,
+    },
     email: {
       type: String,
       required: true,
@@ -19,10 +23,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-    mobileNumber: {
-      type: Number,
-      required: false,
-    },
+    
     password: {
       type: String,
       required: true,

@@ -613,6 +613,11 @@ export const validateKyc = async (req, res, next) => {
           .required("Lastname name is required. ")
           .trim()
           .lowercase(),
+        mobileNumber: yup
+
+          .string()
+          .required("Mobile number is required. ")
+          .matches(/^[0-9]+$/, "Mobile number must contain digits only."),
         email: yup
           .string()
           .email("Please insert valid email.")
@@ -665,15 +670,16 @@ export const validateKyc = async (req, res, next) => {
 
 export const kyc = async (req, res) => {
   try {
-    let { firstName, lastName, email, address } = req.body;
+    let { firstName, lastName, mobileNumber, email, address } = req.body;
 
     firstName = sanitizeData(firstName);
     lastName = sanitizeData(lastName);
+    mobileNumber = sanitizeData(mobileNumber);
     email = emailSanitize(email);
     address = sanitizeData(address);
 
     let images = req.files;
-
+    // console.log(mobileNumber);
     //if already verified ? block it
     const findKyc = await Kyc.findOne({ userId: req.userId });
 
@@ -724,6 +730,7 @@ export const kyc = async (req, res) => {
         {
           firstName,
           lastName,
+          mobileNumber,
           email,
           address,
           simOwner: kyc[0],
@@ -732,6 +739,10 @@ export const kyc = async (req, res) => {
       ],
     };
     await Kyc.create(data);
+
+    await User.updateOne({_id: req.userId},{$set:{
+      mobileNumber: mobileNumber
+    }})
 
     return res.status(200).json({ message: "KYC updated " });
   } catch (error) {

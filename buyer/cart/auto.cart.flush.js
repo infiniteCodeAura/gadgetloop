@@ -47,6 +47,7 @@ export const cleanupOldCarts = async () => {
           .map((item) => `${item.productName || item.productId}`) // Format product list nicely
           .join("\n");
 
+
         const warningMessage = `
 Hello ${user.firstName},
 

@@ -58,7 +58,7 @@ app.use(
 connectDb();
 //run every midnight
 cron.schedule("0 0 * * *", () => {
-  console.log("🕛 Running daily cart cleanup...");
+  console.log("Running daily cart cleanup...");
   cleanupOldCarts();
 });
 

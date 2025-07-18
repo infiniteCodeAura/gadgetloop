@@ -1,6 +1,6 @@
 import express from "express";
 import { file } from "../additional/conf_upload/multer.configure.js";
-import { isSeller } from "../authentication/user.authentication.js";
+import { isKyc, isSeller } from "../authentication/user.authentication.js";
 import { productValidation, uploadVideos, uploadVideoValidation } from "./membership/pro.js";
 import { readVideo } from "./membership/uploadVideo/multer.video.js";
 import {
@@ -42,6 +42,7 @@ router.post(
   },
 
   isSeller,
+  isKyc,
   yupAddProductValidate,
   productImageValidation,
   addProduct
@@ -98,6 +99,7 @@ router.post(
   },
 
   
+
   isSeller,
   productValidation,
   uploadVideoValidation,
