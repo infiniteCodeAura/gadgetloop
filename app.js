@@ -9,6 +9,7 @@ import cors from "cors";
 import { cleanupOldCarts } from "./buyer/cart/auto.cart.flush.js";
 import cookieParser from "cookie-parser";
 import admin from "./admin/user/admin.user.api.js";
+import path from "path";
 const app = express();
 
 app.use(express.json());
@@ -36,24 +37,34 @@ export const globalRateLimiter = rateLimit({
 
 app.use(globalRateLimiter);
 
-const allowedOrigins = ["http://192.168.0.106:5173"];
+// const allowedOrigins = ["http://192.168.0.106:5173","localhost:3000"];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true); //allow request
-      } else {
-        callback(new Error("Not allowed by cors. ")); //reject request
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Optional but recommended
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: [
+      'http://192.168.0.106:3000',   // vite dev server
+      'http://localhost:3000'        // (optional) local dev
+    ],
+    credentials: true                // allow cookies + Authorization
   })
 );
 
+ // Use this to allow all origins
 
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true); //allow request
+//       } else {
+//         callback(new Error("Not allowed by cors. ")); //reject request
+//       }
+//     },
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Optional but recommended
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//   })
+// );
 
 connectDb();
 //run every midnight
@@ -62,14 +73,21 @@ cron.schedule("0 0 * * *", () => {
   cleanupOldCarts();
 });
 
+
+// Serve uploads folder
+app.use("/upload", express.static(path.join(process.cwd(), "upload")));
+
+
+
+
 //user
 app.use("/api/v1", userRouter);
 app.use("/api/v2", sellerRouter);
 app.use("/api/v3", buyerRouter);
 
-//admin 
+//admin
 
-app.use("/api/admin/v1",admin)
+app.use("/api/admin/v1", admin);
 
 const port = process.env.port || 8888;
 app.listen(port, () => {

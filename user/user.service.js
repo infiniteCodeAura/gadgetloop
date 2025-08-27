@@ -183,7 +183,7 @@ export const loginUser = async (req, res) => {
         sameSite: "Strict",
         maxAge: 24 * 60 * 60 * 1000,
       })
-      .json({ data: sanitizedUser });
+      .json({ data: sanitizedUser,token: token });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Internal server error." });
@@ -356,7 +356,7 @@ export const uploadProfile = async (req, res) => {
 
     fs.writeFileSync(uploadPath, profilePhoto.buffer);
 
-    console.log(uploadPath);
+    // console.log(uploadPath);
     //store photo url in db
 
     await User.updateOne(
@@ -627,7 +627,7 @@ export const validateKyc = async (req, res, next) => {
       .validate(data);
 
     //block multiple images
-console.log(images.length);
+// console.log(images.length);
     //photo limit
     if (images.length > 2) {
       return res
