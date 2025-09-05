@@ -16,6 +16,10 @@ const cartItemSchema = new mongoose.Schema(
       default: 1,
       min: 1,
     },
+    image:{
+      type: String,
+      default:""
+    }
   },
 
   { timestamps: true, _id: false }

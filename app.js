@@ -10,6 +10,7 @@ import { cleanupOldCarts } from "./buyer/cart/auto.cart.flush.js";
 import cookieParser from "cookie-parser";
 import admin from "./admin/user/admin.user.api.js";
 import path from "path";
+import guestRouter from "./guest/guest.api.js";
 const app = express();
 
 app.use(express.json());
@@ -81,9 +82,12 @@ app.use("/upload", express.static(path.join(process.cwd(), "upload")));
 
 
 //user
+app.use("/api/v0",guestRouter)
 app.use("/api/v1", userRouter);
 app.use("/api/v2", sellerRouter);
 app.use("/api/v3", buyerRouter);
+
+
 
 //admin
 

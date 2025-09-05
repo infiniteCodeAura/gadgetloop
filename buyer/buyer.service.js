@@ -1,6 +1,7 @@
 import yup, { Schema } from "yup";
 import { sanitizeData } from "../utils/sanitizeData.js";
 import { Product } from "../seller/product/product.model.js";
+import { Comment } from "./comment/comment.model.js";
 
 export const searchValidation = async (req, res, next) => {
   const { name, category, page = 1 } = req.query;
@@ -84,3 +85,34 @@ export const searchProduct = async (req, res) => {
     return res.status(400).json({ message: error.message });
   }
 };
+
+//comment list of a product comment view 
+export const productCommentList = async (req, res) => {
+  const { id } = req.params;
+  try {
+    //fetch product
+    const product = await Product.findById(id)
+    if(!product){
+      return res.status(404).json({message:"Product not found"})
+    }
+    //fetch comments
+    const comments = await Comment.find({productId:id}).populate('userId','firstName lastName email');
+    product.comments = comments;
+    
+console.log(product.comments);
+
+    return res.status(200).json({ comments: product.comments || [] });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+
+};
+
+
+
+
+
+
+
+

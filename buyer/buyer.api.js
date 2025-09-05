@@ -6,12 +6,7 @@ import {
   updateAddress,
   updateAddressValidation,
 } from "./address/address.service.js";
-import {
-  commentPost,
-  replyComment,
-  replyCommentValidation,
-  yupValidationComment,
-} from "./comment/comment.services.js";
+import { productCommentList, searchProduct, searchValidation } from "./buyer.service.js";
 import {
   addToCart,
   cartCount,
@@ -24,6 +19,12 @@ import {
   yupCartDataValidation,
 } from "./cart/cart.service.js";
 import {
+  commentPost,
+  replyComment,
+  replyCommentValidation,
+  yupValidationComment,
+} from "./comment/comment.services.js";
+import {
   orderPayment,
   orderProduct,
   orderValidation,
@@ -31,7 +32,6 @@ import {
 } from "./order/order.service.js";
 import { isBuy } from "./purchase.auth.js";
 import { postReview, reviewValidation } from "./review/review.service.js";
-import { searchProduct, searchValidation } from "./buyer.service.js";
 
 const router = express();
 
@@ -117,6 +117,17 @@ router.post(
 //search product through name catagory
 router.get("/product/search", isBuyer, searchValidation, searchProduct);
 
+//fetch all comments of a product
+router.get("/product/:id/list", isBuyer,productCommentList);
+
+
 //buy all cart product api
+
+
+
+//stript individual product payment api 
+router.post("/order/product/cart/payment",isBuyer)
+
+
 
 export default router;

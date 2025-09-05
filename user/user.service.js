@@ -166,7 +166,7 @@ export const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign({ email: user.email }, process.env.key, {
-      expiresIn: "24h",
+      expiresIn: "90h",
     });
 
     const sanitizedUser = user.toObject();
