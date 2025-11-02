@@ -48,6 +48,11 @@ export const addToCart = async (req, res) => {
       return res.status(404).json({ message: "Product not found." });
     }
 
+    // disallow adding archived products to cart
+    if (product.isArchived === true) {
+      return res.status(404).json({ message: "Product not found." });
+    }
+
     // Find or create user's cart
     let cart = await Cart.findOne({ userId });
     if (!cart) {
@@ -180,6 +185,9 @@ export const cartUpdate = async (req, res) => {
     // console.log(product);
 
     if (!product) {
+      return res.status(404).json({ message: "Product not found. " });
+    }
+    if (product.isArchived === true) {
       return res.status(404).json({ message: "Product not found. " });
     }
     let cart = await Cart.findOne({ userId: userId });

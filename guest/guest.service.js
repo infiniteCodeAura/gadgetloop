@@ -32,14 +32,13 @@ export const productViewDetails = async (req, res) => {
   }
 
   const productData = await Product.findById(id);
-
-  //check deleted product
-  if (productData.isArchived === "true") {
-    return res.status(400).json({ message: "Product not found" });
+  if (!productData) {
+    return res.status(404).json({ message: "Product not found" });
   }
 
-  if (!productData) {
-    return res.status(400).json({ message: "Product not found" });
+  // check deleted/archived product
+  if (productData.isArchived === true) {
+    return res.status(404).json({ message: "Product not found" });
   }
 
   return res.status(200).json({ data: productData });
@@ -79,6 +78,9 @@ export const searchProductGuest = async (req, res, next) => {
     const pageNumber = parseInt(page) || 1;
     const limit = 15;
     const skip = (pageNumber - 1) * limit;
+
+    // exclude archived products
+    query.isArchived = false;
 
     const [products, total] = await Promise.all([
       Product.find(query).skip(skip).limit(limit),

@@ -229,18 +229,19 @@ export const validateView = async (req, res, next) => {
 
 export const view = async (req, res) => {
   const id = req.params.id;
-  //check product existence
-  let productData = await Product.find({ _id: id });
-  //hide user id
-  productData[0].userId = undefined;
-
-  //check deleted product
-  if (productData.isArchived === "true") {
-    return res.status(400).json({ message: "Product not found" });
-  }
+  // check product existence
+  const productData = await Product.findById(id);
 
   if (!productData) {
-    return res.status(400).json({ message: "Product not found" });
+    return res.status(404).json({ message: "Product not found" });
+  }
+
+  // hide user id
+  productData.userId = undefined;
+
+  // check deleted/archived product
+  if (productData.isArchived === true) {
+    return res.status(404).json({ message: "Product not found" });
   }
 
   return res.status(200).json({ data: productData });
@@ -258,13 +259,11 @@ export const list = async (req, res, next) => {
     const limit = 20;
     const skip = (page - 1) * limit;
 
-    //count and find only products belong to current seller
-    const total = await Product.countDocuments({ userId: sellerId, isArchived:false });
-    const products = await Product.find({ userId: sellerId, isArchived:false })
-    
+    // count and find only products belonging to current seller (exclude archived)
+    const total = await Product.countDocuments({ userId: sellerId, isArchived: false });
+    const products = await Product.find({ userId: sellerId, isArchived: false })
       .skip(skip)
       .limit(limit);
-//hide archive products 
 
 
    
@@ -324,15 +323,21 @@ export const search = async (req, res) => {
       productName: { $regex: searchTerm, $options: "i" },
     };
 
-    //count total matching products for this seller + search term
+    // exclude archived products from search
+    query.isArchived = false;
+
+    // count total matching products for this seller + search term
     const total = await Product.countDocuments(query);
 
     const products = await Product.find(query).skip(skip).limit(limit);
 
-    // console.log(products[0].isArchived);
-    //hide deleted products
-    if (products[0].isArchived == true) {
-      return res.status(404).json({ message: "Product not found. " });
+    if (!products || products.length === 0) {
+      return res.status(200).json({
+        page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        data: [],
+      });
     }
 
     return res.status(200).json({

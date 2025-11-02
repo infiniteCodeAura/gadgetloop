@@ -38,6 +38,11 @@ export const postReview = async (req, res) => {
         .json({ message: "Product not found with this id. " });
     }
 
+    // disallow reviews for archived/deleted products
+    if (product.isArchived === true) {
+      return res.status(404).json({ message: "Product not found with this id. " });
+    }
+
     let review = await Review.findOne({ userId: userId, productId: productId });
 
     if (!data.feedback) {

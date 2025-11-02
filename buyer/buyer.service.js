@@ -65,6 +65,9 @@ export const searchProduct = async (req, res) => {
 
     // const products = await Product.find(query)
 
+    // exclude archived products from buyer search results
+    query.isArchived = false;
+
     const [products, total] = await Promise.all([
       Product.find(query).skip(skip).limit(limit),
       Product.countDocuments(query),
@@ -94,6 +97,11 @@ export const productCommentList = async (req, res) => {
     const product = await Product.findById(id)
     if(!product){
       return res.status(404).json({message:"Product not found"})
+    }
+
+    // don't return archived product
+    if (product.isArchived === true) {
+      return res.status(404).json({ message: "Product not found" });
     }
     //fetch comments
     const comments = await Comment.find({productId:id}).populate('userId','firstName lastName email');
