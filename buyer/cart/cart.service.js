@@ -226,7 +226,7 @@ export const cartUpdate = async (req, res) => {
       item.quantity -= 1;
 
       if (item.quantity <= 0) {
-        cart.items.splice(itemIndex, 1);
+        cart.items.splice(itemIndex, 1); 
       }
     }
     // console.log(item)

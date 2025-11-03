@@ -44,7 +44,8 @@ app.use(
   cors({
     origin: [
       'http://192.168.0.106:3000',   // vite dev server
-      'http://localhost:3000'        // (optional) local dev
+      'http://localhost:3000'  ,
+       'http://localhost:3001'      // (optional) local dev
     ],
     credentials: true                // allow cookies + Authorization
   })
