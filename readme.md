@@ -4,7 +4,7 @@ Input: Name, Email, Password, Role (Buyer/Seller)
 
 🔽 Check if email already exists
 
-✔️ No → Proceed
+✔️ No → Proceed 
 
 ❌ Yes → Show “User already exists”
 
