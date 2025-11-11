@@ -51,6 +51,9 @@ app.use(
   })
 );
 
+app.get("/hello",(req,res)=>{
+  return res.send("hello");
+})
  // Use this to allow all origins
 
 // app.use(
