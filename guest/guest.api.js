@@ -8,7 +8,7 @@ const router = express.Router();
 router.get("/products", products)
 router.get("/product/view/:id", productViewDetails)
 router.get("/product/search", searchProductGuest)
-
+ 
 // Contact form route (public - no authentication required)
 router.post("/contact", validateContact, submitContact)
 
