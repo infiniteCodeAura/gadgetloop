@@ -11,6 +11,7 @@ import cookieParser from "cookie-parser";
 import admin from "./admin/user/admin.user.api.js";
 import path from "path";
 import guestRouter from "./guest/guest.api.js";
+import paymentRouter from "./buyer/payment/payment.api.js";
 const app = express();
 
 app.use(express.json());
@@ -44,17 +45,17 @@ app.use(
   cors({
     origin: [
       'http://192.168.0.106:3000',   // vite dev server
-      'http://localhost:3000'  ,
-       'http://localhost:3001'      // (optional) local dev
+      'http://localhost:3000',
+      'http://localhost:3001'      // (optional) local dev
     ],
     credentials: true                // allow cookies + Authorization
   })
 );
 
-app.get("/hello",(req,res)=>{
+app.get("/hello", (req, res) => {
   return res.send("hello");
 })
- // Use this to allow all origins
+// Use this to allow all origins
 
 // app.use(
 //   cors({
@@ -86,10 +87,11 @@ app.use("/upload", express.static(path.join(process.cwd(), "upload")));
 
 
 //user
-app.use("/api/v0",guestRouter)
+app.use("/api/v0", guestRouter)
 app.use("/api/v1", userRouter);
 app.use("/api/v2", sellerRouter);
 app.use("/api/v3", buyerRouter);
+app.use("/api/v3", paymentRouter);
 
 
 

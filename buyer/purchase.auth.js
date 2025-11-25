@@ -15,37 +15,16 @@ export const isBuy = async (req, res, next) => {
 
     const userId = req.userId;
 
-    const order = await Order.findOne({ userId: userId });
-    if (!order) {
-      return res.status(404).json({ message: "Order not found. " });
-    }
-
-    //product is still available or not check
-
-    let checkProduct = await Product.findOne({ _id: productId });
-    if (!checkProduct) {
-      return res.status(404).json({ message: "Product not found. " });
-    }
-    if (checkProduct.isArchived === true) {
-      return res.status(404).json({ message: "Product not found. " });
-    }
-
-    // let orderProductCheck = order.products.findIndex((item) => {
-    //   //  return console.log(item.productId)
-    //   return item.productId?.toString() === productId;
-    // });
-    let orderProductCheck = order.products.some((item) => {
-      //  return console.log(item.productId)
-      return item.productId?.toString() === productId;
+    // Find an order by this user that contains the product and is delivered
+    const order = await Order.findOne({
+      userId: userId,
+      "products.productId": productId,
+      orderStatus: "delivered"
     });
 
-    if (!orderProductCheck) {
-      return res.status(404).json({ message: "Product not found in order. " });
-    }
-
-    if (order.orderStatus !== "delivered") {
-      return res.status(400).json({
-        message: "You can't leave feedback before the product is delivered.",
+    if (!order) {
+      return res.status(404).json({
+        message: "You can only review products you have purchased and received."
       });
     }
 

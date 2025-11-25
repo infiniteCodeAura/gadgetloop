@@ -17,6 +17,7 @@ import Ip from "./device/device.model.js";
 import Kyc from "./kyc/kyc.model.js";
 import User from "./user.model.js";
 import { yupSignupValidation } from "./user.validation.js";
+import { Address } from "../buyer/address/address.model.js";
 
 //signup user validation
 export const signupUserValidation = async (req, res, next) => {
@@ -183,7 +184,7 @@ export const loginUser = async (req, res) => {
         sameSite: "Strict",
         maxAge: 24 * 60 * 60 * 1000,
       })
-      .json({ data: sanitizedUser,token: token });
+      .json({ data: sanitizedUser, token: token });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Internal server error." });
@@ -191,7 +192,7 @@ export const loginUser = async (req, res) => {
 };
 //profile
 
-export const profile = (req, res) => {
+export const profile = async (req, res) => {
   try {
     const user = req.userData;
 
@@ -201,6 +202,16 @@ export const profile = (req, res) => {
     const userObj = user.toObject();
 
     delete userObj._id;
+
+    // Fetch user's address
+    const address = await Address.findOne({ userId: user._id });
+
+    // Add addresses array to response (for consistency with frontend)
+    if (address) {
+      userObj.addresses = [address];
+    } else {
+      userObj.addresses = [];
+    }
 
     return res.status(200).json({ data: userObj });
   } catch (error) {
@@ -627,7 +638,7 @@ export const validateKyc = async (req, res, next) => {
       .validate(data);
 
     //block multiple images
-// console.log(images.length);
+    // console.log(images.length);
     //photo limit
     if (images.length > 2) {
       return res
@@ -699,9 +710,8 @@ export const kyc = async (req, res) => {
       let extentions = ext[index];
       let randomCode = Math.floor(Math.random() * 900000) + 1;
 
-      return `${Date.now()}-${req.userData.firstName}-${
-        req.userData.lastName
-      }-${req.userId}-${randomCode}.${extentions}`;
+      return `${Date.now()}-${req.userData.firstName}-${req.userData.lastName
+        }-${req.userId}-${randomCode}.${extentions}`;
     });
 
     let kyc = [];
@@ -738,9 +748,11 @@ export const kyc = async (req, res) => {
     };
     await Kyc.create(data);
 
-    await User.updateOne({_id: req.userId},{$set:{
-      mobileNumber: mobileNumber
-    }})
+    await User.updateOne({ _id: req.userId }, {
+      $set: {
+        mobileNumber: mobileNumber
+      }
+    })
 
     return res.status(200).json({ message: "KYC updated " });
   } catch (error) {

@@ -120,12 +120,22 @@ export const cartList = async (req, res) => {
   const userId = req.userId;
   try {
     let cart = await Cart.findOne({ userId: userId });
+
+    // If no cart exists, return empty structure
     if (!cart) {
-      return res.status(404).json({ message: "Cart item not found. " });
+      return res.status(200).json({
+        item: [],
+        totalQuantity: 0,
+        totalPrice: 0,
+      });
     }
 
-    if (!Array.isArray(cart.items) || cart.items === 0) {
-      return res.status(404).json({ message: "Cart is empty. " });
+    if (!Array.isArray(cart.items) || cart.items.length === 0) {
+      return res.status(200).json({
+        item: [],
+        totalQuantity: 0,
+        totalPrice: 0,
+      });
     }
 
     //use map for read array items
@@ -134,6 +144,9 @@ export const cartList = async (req, res) => {
       price: item.price,
       quantity: item.quantity,
       date: item.createdAt,
+      // Include other fields if needed by frontend
+      image: item.image,
+      name: item.name // Ensure name is populated or available
     }));
 
     return res.status(200).json({
@@ -142,6 +155,7 @@ export const cartList = async (req, res) => {
       totalPrice: cart.totalPrice,
     });
   } catch (error) {
+    console.error("Cart List Error:", error);
     return res.status(400).json({ message: error.message });
   }
 };
@@ -226,7 +240,7 @@ export const cartUpdate = async (req, res) => {
       item.quantity -= 1;
 
       if (item.quantity <= 0) {
-        cart.items.splice(itemIndex, 1); 
+        cart.items.splice(itemIndex, 1);
       }
     }
     // console.log(item)
@@ -251,10 +265,13 @@ export const cartUpdate = async (req, res) => {
 
 //total cart item count function
 export const cartCount = async (req, res) => {
-  const cartItemCount = await Cart.find({
-    userId: req.userId,
-  }).countDocuments();
-  return res.status(200).json({ message: "Items: ", cartItemCount });
+  try {
+    const cart = await Cart.findOne({ userId: req.userId });
+    const cartItemCount = cart ? cart.totalQuantity : 0;
+    return res.status(200).json({ message: "Items: ", cartItemCount });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
 };
 
 //delete cart validation function

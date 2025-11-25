@@ -11,7 +11,7 @@ export const products = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    return res.status(200).json({   
+    return res.status(200).json({
       page,
       totalPages: Math.ceil(total / limit),
       totalProducts: total,
@@ -49,7 +49,7 @@ export const productViewDetails = async (req, res) => {
 //search product for guest user 
 
 export const searchProductGuest = async (req, res, next) => {
-  let { name, category,brand,page } = req.query;
+  let { name, category, brand, page, minPrice, maxPrice } = req.query;
 
   const schema = yup.object().shape({
     name: yup.string().trim().nullable().notRequired(),
@@ -59,7 +59,7 @@ export const searchProductGuest = async (req, res, next) => {
   try {
     await schema.validate({ name, category });
 
-   //search logic 
+    //search logic 
     const query = {};
 
     if (name) {
@@ -72,6 +72,13 @@ export const searchProductGuest = async (req, res, next) => {
 
     if (brand) {
       query.brand = { $regex: brand, $options: "i" }; // Case-insensitive search
+    }
+
+    // Price filtering
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
     // Pagination logic
@@ -87,20 +94,14 @@ export const searchProductGuest = async (req, res, next) => {
       Product.countDocuments(query),
     ]);
 
-    if (products.length === 0) {
-      return res.status(404).json({ message: "No products found." });
-    }
-
+    // Return 200 even if no products found, with empty array
     return res.status(200).json({
       count: products.length,
       total,
       currentPage: pageNumber,
       totalPages: Math.ceil(total / limit),
       products,
-    }); 
-
-    // pass to next middleware or return response
-    return res.status(200).json({ name, category });
+    });
 
   } catch (error) {
     return res

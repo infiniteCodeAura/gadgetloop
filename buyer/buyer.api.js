@@ -1,5 +1,5 @@
 import express from "express";
-import { isBuyer } from "../authentication/user.authentication.js";
+import { isBuyer, isUser } from "../authentication/user.authentication.js";
 import {
   address,
   addressValidation,
@@ -31,7 +31,7 @@ import {
   paymentValidation,
 } from "./order/order.service.js";
 import { isBuy } from "./purchase.auth.js";
-import { postReview, reviewValidation } from "./review/review.service.js";
+import { postReview, reviewValidation, getReviews } from "./review/review.service.js";
 
 const router = express();
 
@@ -39,24 +39,25 @@ router.use(express.Router());
 
 //add address
 //address api
-router.post("/buyer/address", isBuyer, addressValidation, address);
+router.post("/buyer/address", isUser, addressValidation, address);
 
 //update address api
 router.put(
   "/buyer/address/update",
-  isBuyer,
+  isUser,
   updateAddressValidation,
   updateAddress
 );
 
 //comment
 //comment api
-router.post("/product/:id/comment", isBuyer, yupValidationComment, commentPost);
+router.post("/product/:id/comment", isUser, yupValidationComment, commentPost);
+router.get("/product/:id/comment", isUser, productCommentList);
 
 //reply comment api
 router.post(
   "/product/comment/:commentId/reply",
-  isBuyer,
+  isUser,
   replyCommentValidation,
   replyComment
 );
@@ -65,7 +66,7 @@ router.post(
 //cart api
 router.post(
   "/product/add/cart/:productId",
-  isBuyer,
+  isUser,
   yupCartDataValidation,
   addToCart
 );
@@ -73,32 +74,32 @@ router.post(
 //cart auto remove functionality
 
 //cart list api
-router.get("/user/cart/list", isBuyer, cartList);
+router.get("/user/cart/list", isUser, cartList);
 
 //count item which added in cart
-router.get("/user/cart/item/count", isBuyer, cartCount);
+router.get("/user/cart/item/count", isUser, cartCount);
 
 //update cart details
-router.post("/user/cart/:id/update", isBuyer, cartUpdateValidation, cartUpdate);
+router.post("/user/cart/:id/update", isUser, cartUpdateValidation, cartUpdate);
 
 //delete cart api
 router.post(
   "/product/delete/cart/:id",
-  isBuyer,
+  isUser,
   deleteCartValidation,
   deleteCart
 );
 
 //cart flush api
-router.delete("/user/cart/flush", isBuyer, flushCart);
+router.delete("/user/cart/flush", isUser, flushCart);
 
 //order api
-router.post("/order/product/:id", isBuyer, orderValidation, orderProduct);
+router.post("/order/product/:id", isUser, orderValidation, orderProduct);
 
 //buy product payment
 router.post(
   "/order/product/:id/payment",
-  isBuyer,
+  isUser,
   paymentValidation,
   orderPayment
 );
@@ -108,17 +109,18 @@ router.post(
 
 router.post(
   "/review/product/:id",
-  isBuyer,
+  isUser,
   isBuy,
   reviewValidation,
   postReview
 );
+router.get("/review/product/:id", isUser, getReviews);
 
 //search product through name catagory
-router.get("/product/search", isBuyer, searchValidation, searchProduct);
+router.get("/product/search", isUser, searchValidation, searchProduct);
 
 //fetch all comments of a product
-router.get("/product/:id/list", isBuyer,productCommentList);
+router.get("/product/:id/list", isUser, productCommentList);
 
 
 //buy all cart product api
@@ -126,7 +128,7 @@ router.get("/product/:id/list", isBuyer,productCommentList);
 
 
 //stript individual product payment api 
-router.post("/order/product/cart/payment",isBuyer)
+router.post("/order/product/cart/payment", isUser)
 
 
 

@@ -1,4 +1,5 @@
 import yup, { Schema } from "yup";
+import mongoose from "mongoose";
 import { sanitizeData } from "../utils/sanitizeData.js";
 import { Product } from "../seller/product/product.model.js";
 import { Comment } from "./comment/comment.model.js";
@@ -93,10 +94,15 @@ export const searchProduct = async (req, res) => {
 export const productCommentList = async (req, res) => {
   const { id } = req.params;
   try {
+    // Validate ID format first
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid product ID format." });
+    }
+
     //fetch product
     const product = await Product.findById(id)
-    if(!product){
-      return res.status(404).json({message:"Product not found"})
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" })
     }
 
     // don't return archived product
@@ -104,17 +110,16 @@ export const productCommentList = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
     //fetch comments
-    const comments = await Comment.find({productId:id}).populate('userId','firstName lastName email');
+    const comments = await Comment.find({ productId: id }).populate('userId', 'firstName lastName email');
     product.comments = comments;
-    
-console.log(product.comments);
+
+    // console.log(product.comments);
 
     return res.status(200).json({ comments: product.comments || [] });
   } catch (error) {
+    console.error("Comment List Error:", error);
     return res.status(400).json({ message: error.message });
   }
-
-
 };
 
 

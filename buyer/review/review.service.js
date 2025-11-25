@@ -81,3 +81,30 @@ export const postReview = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+export const getReviews = async (req, res) => {
+  const productId = req.params.id;
+  try {
+    const checkId = await checkMongoId(productId);
+    if (!checkId) {
+      return res.status(400).json({ message: "Invalid product id." });
+    }
+
+    const reviews = await Review.find({ productId }).populate("userId", "firstName lastName profile");
+
+    // Transform to match frontend expectation if needed
+    const formattedReviews = reviews.map(r => ({
+      _id: r._id,
+      rating: r.rating,
+      feedback: r.feedback,
+      user: {
+        name: r.userId ? `${r.userId.firstName} ${r.userId.lastName}` : "Anonymous",
+        profile: r.userId?.profile
+      },
+      date: r.createdAt
+    }));
+
+    return res.status(200).json({ reviews: formattedReviews });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};

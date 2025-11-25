@@ -73,11 +73,17 @@ export const address = async (req, res) => {
 update buyer address 
 */
 export const updateAddressValidation = async (req, res, next) => {
-  const { city, address, address1 } = req.body;
+  const { phone, city, address, address1 } = req.body;
 
   try {
     await yup
       .object({
+        phone: yup
+          .string()
+          .required("Phone number is required.")
+          .trim()
+          .matches(/^\d{10}$/, "Phone number must be exactly 10 digits"),
+
         city: yup
           .string()
           .required("City name is required. ")
@@ -100,7 +106,6 @@ export const updateAddressValidation = async (req, res, next) => {
 
         address1: yup
           .string()
-          .required("Second address is required. ")
           .trim()
           .optional()
           .max(200)
@@ -110,7 +115,7 @@ export const updateAddressValidation = async (req, res, next) => {
       })
 
       .noUnknown()
-      .validate({ city, address, address1 }); //pass data here
+      .validate({ phone, city, address, address1 }); //pass data here
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
@@ -119,9 +124,10 @@ export const updateAddressValidation = async (req, res, next) => {
 };
 
 export const updateAddress = async (req, res) => {
-  let { address1, address, city } = req.body;
+  let { phone, address1, address, city } = req.body;
 
   try {
+    phone = sanitizeData(phone);
     address1 = sanitizeData(address1);
     address = sanitizeData(address);
     city = sanitizeData(city);
@@ -138,13 +144,14 @@ export const updateAddress = async (req, res) => {
       { userId: req.userId },
       {
         $set: {
+          phone: phone,
           city: city,
           address: address,
           address1: address1,
         },
       }
     );
-    return res.status(200).json({ message: "Adress updated. " });
+    return res.status(200).json({ message: "Address updated. " });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }
