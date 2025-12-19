@@ -1,3 +1,5 @@
+mongodb+srv://username:<db_password>@cluster0.kmhoabs.mongodb.net/
+
 Start
 2. Signup Flow
 Input: Name, Email, Password, Role (Buyer/Seller)
