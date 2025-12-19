@@ -1,7 +1,7 @@
-mongodb+srv://username:<db_password>@cluster0.kmhoabs.mongodb.net/
+
 key = kfjkjkjfsdfkjjkjfdnujvfvkcnvlkdfjgruigi
 ipKey = http://ip-api.com/json/
-appPassword = fwgu gocg bnbu saro
+appPassword =  .......
 uName = 
 password = 
 dbname = gadgetLoop
