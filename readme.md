@@ -1,4 +1,19 @@
 mongodb+srv://username:<db_password>@cluster0.kmhoabs.mongodb.net/
+key = kfjkjkjfsdfkjjkjfdnujvfvkcnvlkdfjgruigi
+ipKey = http://ip-api.com/json/
+appPassword = fwgu gocg bnbu saro
+uName = 
+password = 
+dbname = gadgetLoop
+port = 9090
+otpKey = vnjdfluarhgjnvkldjfbvkdjhgkldjfghksdjfgnkjdhgjhfkdgd
+
+//mail 
+gmail = wwwghimiresagar88@gmail.com
+
+
+
+
 
 Start
 2. Signup Flow
